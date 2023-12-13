@@ -10,7 +10,7 @@ git pull
 
 Amener des modifications faites en local sur le repo commun
 git add . pour tout push ou nom du fichier modifié
-git commit -m « … »
+git commit -m « … » 
 git push
 
 Voir la branche sur laquelle on se trouve :
