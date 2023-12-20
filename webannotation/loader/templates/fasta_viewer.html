@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FASTA Viewer</title>
+</head>
+<body>
+    <h2>Carica nuovo file FASTA:</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Carica</button>
+    </form>
+
+    <h2>Elenco delle sequenze FASTA:</h2>
+    <ul>
+        {% for sequence in sequences %}
+            <li>{{ sequence.description }}: {{ sequence.seq }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
