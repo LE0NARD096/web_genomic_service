@@ -5,15 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e7cb5497-0c0a-4bc3-9947-f28c54d82cf6" name="Changes" comment="first attempt">
-      <change afterPath="$PROJECT_DIR$/webannotation/loader/forms.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webannotation/loader/templates/fasta_viewer.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/webannotation/loader/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/c864ffb7-25c3-400a-91e0-bfe2aeaeb3cd.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/c864ffb7-25c3-400a-91e0-bfe2aeaeb3cd.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/projectweb.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/projectweb.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webannotation/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/webannotation/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webannotation/loader/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/webannotation/loader/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webannotation/loader/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/webannotation/loader/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webannotation/webannotation/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/webannotation/webannotation/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webannotation/webannotation/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/webannotation/webannotation/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,21 +28,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "Leonardo",
-    "last_opened_file_path": "C:/Users/masci/OneDrive/Desktop/projectweb/webannotation/media/fasta_files",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Leonardo&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/masci/OneDrive/Desktop/projectweb/webannotation/media/fasta_files&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\masci\OneDrive\Desktop\projectweb\webannotation\media\fasta_files" />
@@ -67,6 +61,8 @@
       <workItem from="1703024352566" duration="436000" />
       <workItem from="1703024837903" duration="1690000" />
       <workItem from="1703084828589" duration="3579000" />
+      <workItem from="1704999092735" duration="34000" />
+      <workItem from="1704999151550" duration="15000" />
     </task>
     <task id="LOCAL-00001" summary="first attempt">
       <option name="closed" value="true" />
