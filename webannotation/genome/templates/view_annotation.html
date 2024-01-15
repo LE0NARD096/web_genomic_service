@@ -1,0 +1,5 @@
+<h2>View Annotation</h2>
+<p>Text: {{ annotation.text }}</p>
+<!-- Display other annotation details -->
+<a href="{% url 'edit_annotation_url' annotation.id %}">Edit</a>
+<a href="{% url 'validate_annotation_url' annotation.id %}">Validate</a>

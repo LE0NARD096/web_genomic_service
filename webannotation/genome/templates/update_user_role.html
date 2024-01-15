@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update User Role</title>
+    <!-- Add any necessary CSS or JavaScript here -->
+</head>
+<body>
+    <h2>Update Role for {{ user.username }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Update Role</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,8 @@
+<h2>Edit Annotation</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="text">Annotation Text:</label>
+    <textarea id="text" name="text">{{ annotation.text }}</textarea>
+    <!-- Add other fields and pre-populate them as needed -->
+    <button type="submit">Update Annotation</button>
+</form>
