@@ -1,7 +1,9 @@
 <h2>Résultats de la recherche</h2>
 {% if results %}
     {% for result in results %}
-        <p>{{ result.species }}</p>
+        <p>{{ result.description }}</p>
+        <p>{{ result.sequence }}</p>
+        <br>
     {% endfor %}
 {% else %}
     <p>Aucun résultat trouvé.</p>
