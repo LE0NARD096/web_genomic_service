@@ -1,1 +1,4 @@
-./.venv/
+./webannotation/__pycache__/*
+./website/__pycache__/*
+./.venv/*
+./.idea/*
