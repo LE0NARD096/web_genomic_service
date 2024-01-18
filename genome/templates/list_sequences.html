@@ -1,8 +1,0 @@
-<h2>Sequences List</h2>
-<ul>
-    {% for sequence in sequences %}
-    <li>
-        Sequence ID: {{ sequence.id }} - <a href="{% url 'view_sequence_url' sequence.id %}">View Details</a>
-    </li>
-    {% endfor %}
-</ul>

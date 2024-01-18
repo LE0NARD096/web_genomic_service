@@ -2,6 +2,9 @@
 
 **Git command **
 
+Create an environment :
+source env_install.sh 
+
 Cloner un repository git en local :
 git clone url 
 

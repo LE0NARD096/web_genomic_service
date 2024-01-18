@@ -1,5 +1,0 @@
-<!-- user_list.html -->
-
-{% for user in users %}
-    <p>{{ user.username }} - {{ user.email }} - <a href="{% url 'edit_user_url' user.id %}">Edit</a> - <a href="{% url 'delete_user_url' user.id %}">Delete</a></p>
-{% endfor %}

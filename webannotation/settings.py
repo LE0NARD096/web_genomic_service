@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'genome',
     'website',
 ]
 
@@ -52,7 +51,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'genome.role_middleware.RoleMiddleware',
 ]
 
 ROOT_URLCONF = 'webannotation.urls'
@@ -133,5 +131,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
-AUTH_USER_MODEL = 'genome.CustomUser'
 
