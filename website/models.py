@@ -20,7 +20,7 @@ class User(AbstractUser):
         return self.first_name + " " + self.last_name
 
 class Genome(models.Model):
-    sequence = models.ForeignKey('Sequence', on_delete=models.CASCADE, related_name='genomes')
+    sequence = models.TextField()
     species = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     type = models.CharField(max_length=255)
