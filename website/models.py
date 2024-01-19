@@ -1,5 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group, Permission
+
+
 class User(AbstractUser):
     username = models.CharField(max_length=200, unique=True)
     email = models.EmailField(max_length=200, unique=True)
@@ -8,7 +10,11 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=200)
     role = models.CharField(max_length=50)
 
-    USERNAME_FIELD = 'email'  # Add this line
+    USERNAME_FIELD = 'email'
+
+    # Add unique related names to avoid clashes
+    groups = models.ManyToManyField(Group, related_name='website_user_groups')
+    user_permissions = models.ManyToManyField(Permission, related_name='website_user_permissions')
 
     def __str__(self):
         return self.first_name + " " + self.last_name
