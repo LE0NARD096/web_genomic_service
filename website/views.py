@@ -30,6 +30,7 @@ def logout_view(request):
 
 def register_view(request):
     user = request.user
+    print(user)
     #if user.is_authenticated:
         #return HttpResponse(f'You are already authenticated as {user.email}')
     if request.method == 'POST':
@@ -39,8 +40,8 @@ def register_view(request):
             user = form.save(commit=False)
             user.username = user.username.lower()
             user.save()
-            messages.success(request, f'{user.username} have signed up successfully.')
-            return redirect('home.html')
+            print('iii')
+            return render(request,'home.html')
     else:
         messages.error(request, 'Error creating your account or invalid login credentials. Please correct the errors below.')
         form = UserRegistrationForm()
