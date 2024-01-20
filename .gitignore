@@ -1,4 +1,9 @@
-./webannotation/__pycache__/*
-./website/__pycache__/*
-./.venv/*
-./.idea/*
+# File di cache
+*.pyc
+__pycache__/
+
+# Database SQLite
+db.sqlite3
+
+# Cartelle generate da IDE (esempio per PyCharm)
+.idea/
