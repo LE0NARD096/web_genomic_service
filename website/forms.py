@@ -14,6 +14,7 @@ class Upload_data(forms.Form):
     sequence = forms.FileField(help_text="Upload a fasta file",allow_empty_file=False)
     species = forms.CharField(max_length=200)
 
+
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(label='Email', required=True)
     first_name = forms.CharField(label='First Name', required=True)

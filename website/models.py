@@ -16,8 +16,8 @@ class Profile(AbstractUser):
 class Genome(models.Model):
     sequence = models.TextField()
     species = models.CharField(max_length=255)
-    description = models.CharField(max_length=255, default='Default Description')
-    type = models.CharField(max_length=255, default='Default Type')
+    description = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
 
     def __str__(self):
         return self.species + " " + self.type 

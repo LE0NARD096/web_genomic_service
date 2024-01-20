@@ -1,6 +1,9 @@
-<h2>Register</h2>
-<form method="post">
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
+
+<form method="post" action="{% url 'login' %}">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Register</button>
+    <button type="submit">Login</button>
 </form>
