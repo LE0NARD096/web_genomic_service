@@ -4,10 +4,28 @@ from .forms import GenomeSearchForm,Upload_data
 from Bio import SeqIO
 from Bio.Seq import Seq
 from io import StringIO
+from django.urls import reverse
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from .forms import UserRegistrationForm
+from .models import Sequence
+from django.contrib import messages
+from .forms import LoginForm
+from . import forms
+
 
 def home(request):
-    all_users = User.objects.all
-    return render(request,'home.html',{'all': all_users})
+    all_users = User.objects.all()
+    
+    # Add the following lines to get the URLs for register and login pages
+    register_url = reverse('register')  # Replace 'register' with the actual name of your register URL
+    login_url = reverse('login')    # Replace 'login_url' with the actual name of your login URL
+
+    return render(request, 'home.html', {'all': all_users, 'register': register_url, 'login': login_url})
+
 
 def search_results(request):
     if request.method == 'POST':
@@ -38,6 +56,7 @@ def search_results(request):
 
     return render(request, 'search_form.html', {'form': form})
 
+
 def upload(request):
     if request.POST:
         form = Upload_data(request.POST, request.FILES)
@@ -59,3 +78,37 @@ def upload(request):
             return redirect(home)
     return render(request,'upload.html',{'form':Upload_data})
 
+def login_view(request):
+    form = forms.LoginForm()
+    message = ''
+
+    if request.method == 'POST':
+        form = forms.LoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password'],
+            )
+            if user is not None:
+                login(request, user)
+                message = f'Hello {user.username}! You have been logged in'
+                return redirect('home')  # Redirect to home after successful login
+            else:
+                message = 'Login failed!'
+        else:
+            messages.error(request, 'Invalid login credentials. Please try again.')
+
+    return render(
+        request, 'login.html', context={'form': form, 'message': message})
+
+def register_view(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')  # Redirect to home after successful registration
+    else:
+        form = UserRegistrationForm()  # Change to UserRegistrationForm to use the registration form
+
+    return render(request, 'register.html', {'form': form})
