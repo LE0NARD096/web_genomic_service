@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import User, Genome
+from .models import Profile, Genome
 
-admin.site.register(User)
+admin.site.register(Profile)
 admin.site.register(Genome)
+

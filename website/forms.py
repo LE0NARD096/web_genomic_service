@@ -1,6 +1,5 @@
 from django import forms
-from django.forms import ModelForm
-from .models import Genome, Annotation, Sequence, User
+from .models import Profile
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -17,9 +16,9 @@ class Upload_data(forms.Form):
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(label='Email', required=True)
-    phone_number = forms.CharField(label='Phone Number', required=True)
     first_name = forms.CharField(label='First Name', required=True)
     last_name = forms.CharField(label='Last Name', required=True)
+    phone_number = forms.CharField(label='Phone Number', required=False)
 
     ROLE_CHOICES = [
         ('user', 'User'),
@@ -29,21 +28,16 @@ class UserRegistrationForm(UserCreationForm):
 
     role = forms.ChoiceField(label='Role', choices=ROLE_CHOICES)
 
-    class Meta(UserCreationForm.Meta):
-        model = User
-        fields = ['email', 'password1', 'password2', 'first_name', 'last_name', 'phone_number', 'role']
-        widgets = {
-            'password1': forms.PasswordInput(),
-            'password2': forms.PasswordInput(),
-        }
+    class Meta:
+        model = Profile
+        fields = ['username','email', 'first_name', 'last_name', 'phone_number', 'role', 'password1', 'password2']
 
-
-class GenomeForm(forms.ModelForm):
+""" class GenomeForm(forms.ModelForm):
     class Meta:
         model = Genome
-        fields = ['sequence', 'species', 'description', 'type']
+        fields = ['sequence', 'species', 'description', 'type'] """
 
-class AnnotationForm(forms.ModelForm):
+""" class AnnotationForm(forms.ModelForm):
     class Meta:
         model = Annotation
         fields = ['text', 'sequence', 'isValidated']
@@ -52,4 +46,4 @@ class AnnotationForm(forms.ModelForm):
 class SequenceForm(forms.ModelForm):
     class Meta:
         model = Sequence
-        fields = ['isUnique', 'genome', 'cdsFile', 'pepFile']
+        fields = ['isUnique', 'genome', 'cdsFile', 'pepFile'] """
