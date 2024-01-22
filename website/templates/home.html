@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Welcome to Our Site</title>
+{% if not request.user.is_authenticated %}
 </head>
 <body>
     <h1>Welcome to Our Annotation Platform</h1>
@@ -12,4 +12,14 @@
     <a href="{% url 'login' %}"><button>Login</button></a>
 
 </body>
+{% else %}
+    </head>
+    <body>
+        <h1>Welcome {{ request.user.username }} </h1>
+        <p>This is the home page of our application for annotating and analyzing bacterial genomes.</p>
+
+        <a href="{% url 'search_results' %}"><button>Go to Search</button></a>
+        <a href="{% url 'upload_file' %}"><button>Go to Upload</button></a>
+        <a href="{% url 'logout' %}"><button>Logout</button></a>
+{% endif %}
 </html>

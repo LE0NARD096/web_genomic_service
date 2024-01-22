@@ -23,14 +23,8 @@ def home(request):
     return render(request, 'home.html', {'register': register_url, 'login': login_url})
 
 
-@login_required
-def logout_view(request):
-    logout(request)
-    return redirect('home')  # Redirect to home after logout
-
 def register_view(request):
     user = request.user
-    print(user)
     #if user.is_authenticated:
         #return HttpResponse(f'You are already authenticated as {user.email}')
     if request.method == 'POST':
@@ -40,7 +34,6 @@ def register_view(request):
             user = form.save(commit=False)
             user.username = user.username.lower()
             user.save()
-            print('iii')
             return render(request,'home.html')
     else:
         messages.error(request, 'Error creating your account or invalid login credentials. Please correct the errors below.')
@@ -55,20 +48,26 @@ def login_view(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
+            user = authenticate(request, username=username, password=password,is_approved=True)
+           
             if user is not None:
-                login(request, user)
-                return redirect('upload_file') 
+                if user.is_approved:
+                    login(request, user)
+                    return redirect('/')
+                else:
+                     messages.error(request, 'Your account is not approved yet. Please wait for approval.')
+
     else:
         form = AuthenticationForm()
     
     return render(request, 'Authentication/login.html', {'form': form})
 
 def logout_view(request):
-    logout(request)
-    messages.success(request, f'You have been logged out.')
-    return redirect('home')
-
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request, f'You have been logged out.')
+        return redirect('/')
+    return render(request,'Authentication/logout.html',{})
 
 def search_results(request):
     if request.method == 'POST':

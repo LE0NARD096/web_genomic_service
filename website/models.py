@@ -2,11 +2,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class Profile(AbstractUser):
-    email = models.EmailField(max_length=200, unique=True)
-    phoneNumber = models.CharField(max_length=15)
-    first_name = models.CharField(max_length=200)
-    last_name = models.CharField(max_length=200)
-    role = models.CharField(max_length=50)
+    email = models.EmailField('email',max_length=200, unique=True)
+    phoneNumber = models.CharField('phone_number',max_length=15)
+    first_name = models.CharField('first_name',max_length=200)
+    last_name = models.CharField('last_name',max_length=200)
+    role = models.CharField('role',max_length=50)
+    is_approved = models.BooleanField('approved',default=False)
 
     def __str__(self):
         return str(self.username)
