@@ -1,13 +1,13 @@
 from django.shortcuts import render,redirect
 from .models import Profile, Genome
-from .forms import GenomeSearchForm,Upload_data
+from .forms import GenomeSearchForm,Upload_data, DownloadTextForm
 from Bio import SeqIO
 from Bio.Seq import Seq
 from io import StringIO
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import HttpResponse
-
+from Bio.SeqFeature import SeqFeature, FeatureLocation, SimpleLocation
 from django.urls import reverse
 
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -16,17 +16,68 @@ from django.shortcuts import redirect
 from .forms import UserRegistrationForm
 
 def home(request):
-    # Add the following lines to get the URLs for register and login pages
-    register_url = reverse('register')  # Replace 'register' with the actual name of your register URL
-    login_url = reverse('login')    # Replace 'login_url' with the actual name of your login URL
+    register_url = reverse('register') 
+    login_url = reverse('login')  
 
     return render(request, 'home.html', {'register': register_url, 'login': login_url})
 
+def text_extraction(request):
+    if request.method == 'POST':
+        form = DownloadTextForm(request.POST)
+        if form.is_valid():
+            startposition = form.cleaned_data['StartPosition']
+            endposition = form.cleaned_data['EndPosition']
+            species_query = form.cleaned_data['species']
+            output_type = form.cleaned_data['output_type']
+
+            if output_type == 'genome':
+                results = Genome.objects.filter(species__contains=species_query,type = 'genome')
+            else:
+                results = Genome.objects.filter(species__contains=species_query, type__in=['pep', 'cds'])
+        
+            lines = []
+            flag_None = False
+
+            if startposition == None:
+                startposition = 0
+            
+            if endposition == None:
+                flag_None = True
+            
+            if not results.exists():
+                lines.append(f'No results')
+                
+            else:
+                for type_sequence in results:
+                    my_sequence = Seq(type_sequence.sequence)
+
+                    if flag_None == True:
+                        endposition = len(my_sequence)
+                
+
+                    print(startposition,endposition)
+                    if type_sequence.type == 'pep':
+                        f = SeqFeature(FeatureLocation(startposition, endposition), type="domain")
+                        if f:
+                            extraction = f.extract(my_sequence)
+                            lines.append(f'>{type_sequence.description}\n{extraction}\n')
+                    else :
+                        f = SeqFeature(FeatureLocation(startposition, endposition), type="CDS")
+                        if f:
+                            extraction = f.extract(my_sequence)
+                            lines.append(f'>{type_sequence.description}\n{extraction}\n')
+
+            response = HttpResponse(content_type='text/plain')
+            response['Content-Disposition'] = f'attachment; filename= {species_query}_{output_type}_query.txt'
+            response.writelines(lines)
+            return response
+    else:
+        form = DownloadTextForm()
+
+    return render(request, 'text_extraction.html', {'form': form})
+
 
 def register_view(request):
-    user = request.user
-    #if user.is_authenticated:
-        #return HttpResponse(f'You are already authenticated as {user.email}')
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         print(form)
@@ -90,8 +141,6 @@ def search_results(request):
                 if my_dna.count(sequence_query) > 0:
                     final_result.append(DNAsequence)
             
-            print(final_result)
-
             return render(request, 'search_results.html', {'results': final_result})
     else:
         form = GenomeSearchForm()

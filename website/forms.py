@@ -10,6 +10,13 @@ class GenomeSearchForm(forms.Form):
     species = forms.CharField(label='Species', required=False)
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
 
+class DownloadTextForm(forms.Form):
+    StartPosition = forms.IntegerField(label='Start', required=False)
+    EndPosition = forms.IntegerField(label='End', required=False)
+    species = forms.CharField(label='Species', required=False)
+    output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
+
+
 class Upload_data(forms.Form):
     sequence = forms.FileField(help_text="Upload a fasta file",allow_empty_file=False)
     species = forms.CharField(max_length=200)

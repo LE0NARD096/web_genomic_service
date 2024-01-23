@@ -10,6 +10,7 @@
     <a href="{% url 'search_results' %}"><button>Go to Search</button></a>
     <a href="{% url 'register' %}"><button>Register</button></a>
     <a href="{% url 'login' %}"><button>Login</button></a>
+   
 
 </body>
 {% else %}
@@ -20,6 +21,7 @@
 
         <a href="{% url 'search_results' %}"><button>Go to Search</button></a>
         <a href="{% url 'upload_file' %}"><button>Go to Upload</button></a>
+        <a href="{% url 'text_extraction' %}"><button>Download a fasta from our database</button></a>
         <a href="{% url 'logout' %}"><button>Logout</button></a>
 {% endif %}
 </html>
