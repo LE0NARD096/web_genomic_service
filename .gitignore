@@ -1,6 +1,6 @@
 # File di cache
 *.pyc
-__pycache__/
+*__pycache__*
 
 # Database SQLite
 db.sqlite3

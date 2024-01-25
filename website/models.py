@@ -16,13 +16,26 @@ class Profile(AbstractUser):
 
 class Genome(models.Model):
     sequence = models.TextField()
-    species = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
-    type = models.CharField(max_length=255)
+    chromosome = models.CharField(max_length=255)
+    start = models.IntegerField()
+    end = models.IntegerField()
+    annotated = models.BooleanField('annotated',default=False)
 
     def __str__(self):
-        return self.species + " " + self.type 
-     
+        return self.chromosome 
+    
+class GeneProtein(models.Model):
+    accession_number = models.CharField(max_length=255)
+    sequence = models.TextField()
+    type = models.CharField(max_length=255)
+    start = models.IntegerField()
+    end = models.IntegerField()
+    genome = models.ForeignKey(Genome, on_delete=models.CASCADE)
+    annotated = models.BooleanField('annotated',default=False)
+
+    def __str__(self):
+        return self.accession_number + " " + self.type 
+
 """ 
 class Annotation(models.Model):
     text = models.TextField()
@@ -33,13 +46,4 @@ class Annotation(models.Model):
     
     def __str__(self):
         return f"Annotation by {self.user} - {self.text}"
-
-class Sequence(models.Model):
-    isUnique = models.BooleanField()
-    genome = models.ForeignKey(Genome, on_delete=models.CASCADE, related_name='sequences')
-    cdsFile = models.FileField(upload_to='cds_files/')
-    pepFile = models.FileField(upload_to='pep_files/')
-    
-    def __str__(self):
-        return f"Sequence for {self.genome}" """
-    
+"""
