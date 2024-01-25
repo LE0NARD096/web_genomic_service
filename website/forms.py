@@ -1,13 +1,13 @@
+from typing import Any
 from django import forms
 from .models import Profile
 from django.contrib.auth.forms import UserCreationForm
-
-
-
+from django.core.exceptions import ValidationError
+from Bio import SeqIO
+from io import StringIO
 
 class GenomeSearchForm(forms.Form):
     sequence = forms.CharField(label='Sequence query', required=True,widget=forms.Textarea)
-    species = forms.CharField(label='Species', required=False)
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
 
 class DownloadTextForm(forms.Form):
@@ -18,8 +18,12 @@ class DownloadTextForm(forms.Form):
 
 
 class Upload_data(forms.Form):
-    sequence = forms.FileField(help_text="Upload a fasta file",allow_empty_file=False)
-    species = forms.CharField(max_length=200)
+    sequence = forms.FileField(
+        help_text="Upload a fasta file",
+        allow_empty_file=False,
+        widget=forms.ClearableFileInput(attrs={'accept': '.fa'})
+    )
+    output_type = forms.ChoiceField(label='Upload in', choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')])
 
 
 class UserRegistrationForm(UserCreationForm):

@@ -15,6 +15,6 @@ class GenomeAdmin(admin.ModelAdmin):
 
 @admin.register(GeneProtein)
 class GenomeAdmin(admin.ModelAdmin):
-    fields = (('accession_number','type'),'start','end')
+    fields = (('accession_number','type'),'start','end','genome')
     list_display = ('accession_number','genome','annotated')
     ordering = ('-annotated',)

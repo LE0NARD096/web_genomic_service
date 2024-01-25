@@ -1,10 +1,18 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/search.css' %}">
+
 <h2>Résultats de la recherche</h2>
+
 {% if results %}
     {% for result in results %}
-        <p>{{ result.description }}</p>
-        <p>{{ result.sequence }}</p>
-        <br>
+
+        <a href="{% url 'visualisation' result.type result.id %}">
+            <p>{{ result.chromosome }}</p>
+        </a>
+
     {% endfor %}
 {% else %}
     <p>Aucun résultat trouvé.</p>
 {% endif %}
+
+

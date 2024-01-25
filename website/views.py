@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .models import Profile, Genome
+from .models import Profile, Genome, GeneProtein
 from .forms import GenomeSearchForm,Upload_data, DownloadTextForm
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -9,11 +9,12 @@ from django.contrib import messages
 from django.http import HttpResponse
 from Bio.SeqFeature import SeqFeature, FeatureLocation, SimpleLocation
 from django.urls import reverse
-
+import re
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from .forms import UserRegistrationForm
+
 
 def home(request):
     register_url = reverse('register') 
@@ -121,25 +122,45 @@ def logout_view(request):
     return render(request,'Authentication/logout.html',{})
 
 def search_results(request):
+    
     if request.method == 'POST':
         form = GenomeSearchForm(request.POST)
         if form.is_valid():
             sequence_query = form.cleaned_data['sequence']
-            species_query = form.cleaned_data['species']
             output_type = form.cleaned_data['output_type']
 
-            print(request.POST)
-            if output_type == 'genome':
-                results = Genome.objects.filter(species__contains=species_query,type = 'genome')
-            else:
-                results = Genome.objects.filter(species__contains=species_query, type__in=['pep', 'cds'])
+           
             c = 0
             final_result = []
+
+            if output_type == 'genome':
+                results = Genome.objects.all()
+
+            else:
+                 if validate(sequence_query,'dna'):
+                    results = GeneProtein.objects.filter(type='cds')
+                 else:
+                     results = GeneProtein.objects.filter(type='pep')
+        
+            
+
             for DNAsequence in results:
-                c += 1  # Use the correct += operator
+                c += 1 
                 my_dna = Seq(DNAsequence.sequence)
                 if my_dna.count(sequence_query) > 0:
-                    final_result.append(DNAsequence)
+                    if output_type == 'genome':
+                        result_dic = {
+                            'type': 'genome',
+                            'chromosome': DNAsequence.chromosome,
+                            'id': DNAsequence.id,
+                            }
+                    else:
+                        result_dic = {
+                            'type': DNAsequence.type,
+                            'chromosome': DNAsequence.accession_number,
+                            'id': DNAsequence.id,
+                            }
+                    final_result.append(result_dic)
             
             return render(request, 'search_results.html', {'results': final_result})
     else:
@@ -147,23 +168,85 @@ def search_results(request):
 
     return render(request, 'search_form.html', {'form': form})
 
+def validate(seq, alphabet='dna'):
+    
+    alphabets = {'dna': re.compile('^[acgtn]*$', re.I), 
+             'protein': re.compile('^[acdefghiklmnpqrstvwy]*$', re.I)}
+
+
+    if alphabets[alphabet].search(seq) is not None:
+         return True
+    else:
+         return False
+
 def upload(request):
     if request.POST:
         form = Upload_data(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['sequence']
+            type = request.POST['output_type']
             file_content = file.read().decode('utf-8')
             file_stream = StringIO(file_content)
-            for record in SeqIO.parse(file_stream, 'fasta'):
-                    sequence = record.seq
-                    if record.description.split()[0].lower() == 'chromosome':
-                         type = 'genome'
-                    else:
-                         type = record.description.split()[1]
-                    
-                    species = request.POST['species']
-                    description = record.description
-                    genome = Genome.objects.create(sequence=sequence,species=species,description=description,type=type)
+
+            if type == 'genome':
+                record = SeqIO.parse(file_stream, 'fasta')
+                genome = next(record, None)
+                
+                sequence = genome.seq
+                description = genome.description.split(':')
+                chromosome = description[2]
+                start = description[4]
+                end = description[5]
+
+                if Genome.objects.filter(chromosome=chromosome).exists():
+                    genome = Genome.objects.get(chromosome=chromosome)
+                   
+                    genome.sequence = sequence
+                    genome.start = start
+                    genome.end = end
                     genome.save()
+                else:
+                    genome = Genome.objects.create(sequence=sequence,
+                                               chromosome=chromosome,
+                                               start=start,
+                                               end=end)
+                    genome.save()
+
+            else :
+                for record in SeqIO.parse(file_stream, 'fasta'):
+                   a_n = record.id
+                   sequence = record.seq
+                   type = record.description.split()[1].lower()
+                   description = record.description.split(':')
+                   start = description[3]
+                   end = description[4]
+                   chromosome = description[1]
+            
+                   if Genome.objects.filter(chromosome=chromosome).exists():
+                    genome = Genome.objects.get(chromosome=chromosome)
+                   else:
+                    genome = Genome.objects.create(chromosome=chromosome)
+                    genome.save()
+                                           
+                   gene_protein = GeneProtein.objects.create(accession_number=a_n,
+                                                        sequence=sequence,
+                                                        type=type,
+                                                        start=start,
+                                                        end=end,
+                                                        genome=genome)
+                   gene_protein.save()
+
             return redirect(home)
+        else:
+            return render(request,'upload.html',{'form':form})
+
     return render(request,'upload.html',{'form':Upload_data})
+
+
+def visualisation_sequence(request,type,id):
+    print('iii')
+    if type == "genome":
+        genome = Genome.objects.get(id=id)
+    else:
+        genome = GeneProtein.objects.get(id=id,type=type)
+    return render(request, 'visualisation_sequence.html', {'genome_id': genome})

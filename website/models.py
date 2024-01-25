@@ -13,12 +13,11 @@ class Profile(AbstractUser):
         return str(self.username)
     
 
-
 class Genome(models.Model):
     sequence = models.TextField()
     chromosome = models.CharField(max_length=255)
-    start = models.IntegerField()
-    end = models.IntegerField()
+    start = models.IntegerField(null=True)
+    end = models.IntegerField(null=True)
     annotated = models.BooleanField('annotated',default=False)
 
     def __str__(self):
