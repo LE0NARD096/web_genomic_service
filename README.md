@@ -1,33 +1,35 @@
 # ProjectWeb
 
-**Git command **
+## Project guidelines
 
-Create an environment :
-source env_install.sh 
+To create the correct work environment for this project, the needed installations are in the file env_install.sh :  
+`source env_install.sh`
 
-Cloner un repository git en local :
-git clone url 
+## Git command 
 
-Amener les modifications en local :
-git pull
+Cloner un repository git en local : **git clone url**
 
-Amener des modifications faites en local sur le repo commun : 
+Bring modifications on local from the git repo:
+**git pull**
 
-git add . pour tout push ou nom du fichier modifié
+Bring modifications from your computer to the git repo : 
 
-git commit -m « … » 
+**git add .** to push everything 
+**git add nameFile** to push specific file(s)
 
-git push
+**git commit -m « … »**
 
-Voir la branche sur laquelle on se trouve :
-git status
+**git push**
+
+Vizualise on what branch we are currently on :
+**git status**
 
 Forcer à pull même quand erreur :
-git reset --hard origin/master
+**git reset --hard origin/main**
 
-Changer de branche : 
-git checkout NomBranche
+Change branch : 
+**git checkout NomBranche**
 
-Mettre sa branche à jour avec le main : 
-git merge main
+Update a branch with main : 
+**git merge main**
 
