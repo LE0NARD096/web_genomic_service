@@ -12,14 +12,25 @@ class Profile(AbstractUser):
     def __str__(self):
         return str(self.username)
     
+class AnnotationGenome(models.Model):
+    species = models.CharField(max_length=255)
+    upload_time = models.DateTimeField()
+    annotated = models.BooleanField('annotated',default=False)
+    annotator = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.species
 
 class Genome(models.Model):
+    annotations = models.OneToOneField(
+        AnnotationGenome, 
+        on_delete=models.CASCADE
+        )
     sequence = models.TextField()
     chromosome = models.CharField(max_length=255)
     start = models.IntegerField(null=True)
     end = models.IntegerField(null=True)
-    annotated = models.BooleanField('annotated',default=False)
-
+    
     def __str__(self):
         return self.chromosome 
     

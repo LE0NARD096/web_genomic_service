@@ -10,4 +10,6 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('text_extraction/', views.text_extraction, name='text_extraction'),
     path('visualisation_<str:type>/<int:id>/', views.visualisation_sequence, name='visualisation'),
+    path('validator_view', views.validator_view,name='validator_view'),
+    path('validate_annotators',views.assigned_annotators,name='validate_annotators'),
 ]

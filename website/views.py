@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .models import Profile, Genome, GeneProtein
+from .models import Profile, Genome, GeneProtein, AnnotationGenome
 from .forms import GenomeSearchForm,Upload_data, DownloadTextForm
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -14,6 +14,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from .forms import UserRegistrationForm
+from django.utils import timezone
 
 
 def home(request):
@@ -206,10 +207,17 @@ def upload(request):
                     genome.end = end
                     genome.save()
                 else:
+                    annotation_genome = AnnotationGenome.objects.create(
+                        species='unknown', 
+                        upload_time=timezone.now())
+
+                    annotation_genome.save()
+                    
                     genome = Genome.objects.create(sequence=sequence,
                                                chromosome=chromosome,
                                                start=start,
-                                               end=end)
+                                               end=end,
+                                               annotations=annotation_genome)
                     genome.save()
 
             else :
@@ -244,9 +252,39 @@ def upload(request):
 
 
 def visualisation_sequence(request,type,id):
-    print('iii')
     if type == "genome":
         genome = Genome.objects.get(id=id)
     else:
         genome = GeneProtein.objects.get(id=id,type=type)
     return render(request, 'visualisation_sequence.html', {'genome_id': genome})
+
+
+@login_required
+def validator_view(request):
+    unvalidated_annotations = AnnotationGenome.objects.filter(annotated=False, annotator__isnull=True)
+    annotators = Profile.objects.filter(role='annotator')
+
+    context = {
+        'annotators': annotators,
+        'unvalidated_annotations': unvalidated_annotations,
+    }
+
+    return render(request, 'validator_view.html', context)
+
+@login_required
+def assigned_annotators(request):
+    if request.POST:
+        annotation_id = request.POST.getlist('annotation_id')
+        annotator_id = request.POST.getlist('annotator')
+
+        annotation = AnnotationGenome.objects.filter(id__in=annotation_id)
+
+        c = 0
+        for i in annotation:
+            i.annotator = Profile.objects.get(id=annotator_id[c])
+            i.save()
+            c += 1
+
+        return render(request,'validate_annotators.html')
+
+    return redirect(home)
