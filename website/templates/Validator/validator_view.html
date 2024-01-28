@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title >Validator Dashboard</title>
+    <style>
+        /* Optional: Add some styling to align tables side by side */
+        .table-container {
+            display: flex;
+            justify-content: space-between;
+            margin-right: 500px;
+            margin-left: 500px;
+        }
+        button {
+            text-align: center;
+            margin: 0 auto; 
+            display: block; 
+        }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">Assign an annotator:</h2>
+    <form method="post" action="{% url 'validate_annotators' %}">
+        {% csrf_token %}
+
+        <div class="table-container">
+            <div>
+                <h3>Proteins</h3>
+                {% if unvalidated_proteins %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Gene/Protein</th>
+                                <th>Select Annotator</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for annotation in unvalidated_proteins %}
+                                <tr>
+                                    <td><strong>{{ annotation.accession_number }}</strong></td>
+                                    <td>
+                                        <label for="annotator_{{ annotation.id }}">Select Annotator:</label>
+                                        <select name="annotator_protein" id="annotator_{{ annotation.id }}">
+                                            {% for annotator in annotators %}
+                                                <option value="{{ annotator.id }}">{{ annotator.username }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <input type="hidden" name="annotation_id_protein" value="{{ annotation.id }}">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+
+            <div>
+                <h3>Genomes</h3>
+                {% if unvalidated_genomes %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Genome</th>
+                                <th>Select Annotator</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for annotation in unvalidated_genomes %}
+                                <tr>
+                                    <td><strong>{{ annotation.chromosome }}</strong></td>
+                                    <td>
+                                        <label for="annotator_{{ annotation.id }}">Select Annotator:</label>
+                                        <select name="annotator_genome" id="annotator_{{ annotation.id }}">
+                                            {% for annotator in annotators %}
+                                                <option value="{{ annotator.id }}">{{ annotator.username }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <input type="hidden" name="annotation_id_genome" value="{{ annotation.id }}">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+
+        <button  type="submit">Confirm choices</button>
+    </form>
+</body>
+</html>

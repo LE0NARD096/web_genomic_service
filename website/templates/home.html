@@ -25,6 +25,9 @@
         {% if request.user.role == "validator" %}
         <a href="{% url 'validator_view' %}"><button>Validator dashboard</button></a>
         {% endif %}
+        {% if request.user.role == "annotator" %}
+        <a href="{% url 'annotator_dashboard' %}"><button>Annotator dashboard</button></a>
+        {% endif %}
         <a href="{% url 'logout' %}"><button>Logout</button></a>
 {% endif %}
 </html>
