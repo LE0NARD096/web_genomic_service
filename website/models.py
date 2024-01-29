@@ -12,37 +12,54 @@ class Profile(AbstractUser):
     def __str__(self):
         return str(self.username)
     
-
 class Genome(models.Model):
-    sequence = models.TextField()
+    sequence = models.TextField(null=True,blank=True)
     chromosome = models.CharField(max_length=255)
     start = models.IntegerField(null=True)
     end = models.IntegerField(null=True)
+    upload_time = models.DateTimeField(auto_now=True)
     annotated = models.BooleanField('annotated',default=False)
 
     def __str__(self):
         return self.chromosome 
     
+class AnnotationGenome(models.Model):
+    species = models.CharField(max_length=255, default='unknown')
+    annotation_time = models.DateTimeField(null=True)
+    annotator = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
+    genome = models.OneToOneField(Genome, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.species
+
 class GeneProtein(models.Model):
     accession_number = models.CharField(max_length=255)
     sequence = models.TextField()
     type = models.CharField(max_length=255)
     start = models.IntegerField()
     end = models.IntegerField()
-    genome = models.ForeignKey(Genome, on_delete=models.CASCADE)
+    genome = models.ForeignKey(Genome, 
+                               on_delete=models.CASCADE)
+    upload_time = models.DateTimeField(auto_now=True)
     annotated = models.BooleanField('annotated',default=False)
 
     def __str__(self):
         return self.accession_number + " " + self.type 
 
-""" 
-class Annotation(models.Model):
-    text = models.TextField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='annotations')
-    sequence = models.OneToOneField('Sequence', on_delete=models.SET_NULL, null=True, blank=True)
-    isValidated = models.BooleanField(default=False)
-    createdAt = models.DateTimeField(auto_now_add=True)
-    
+
+class AnnotationProtein(models.Model):
+    gene = models.CharField(max_length=255,default="unknown")
+    transcript = models.CharField(max_length=255,default="unknown")
+    gene_biotype = models.CharField(max_length=255,default="unknown")
+    transcript_biotype = models.CharField(max_length=255,default="unknown")
+    gene_symbol = models.CharField(max_length=255,default="unknown")
+    description = models.CharField(max_length=1000,default="empty")
+    annotation_time = models.DateTimeField(null=True)
+    annotator = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
+    geneprotein = models.ForeignKey(GeneProtein, 
+                                    on_delete=models.CASCADE, 
+                                    null=True, 
+                                    blank=True)
+
     def __str__(self):
-        return f"Annotation by {self.user} - {self.text}"
-"""
+        return self.gene
+    

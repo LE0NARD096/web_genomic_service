@@ -22,6 +22,12 @@
         <a href="{% url 'search_results' %}"><button>Go to Search</button></a>
         <a href="{% url 'upload_file' %}"><button>Go to Upload</button></a>
         <a href="{% url 'text_extraction' %}"><button>Download a fasta from our database</button></a>
+        {% if request.user.role == "validator" %}
+        <a href="{% url 'validator_view' %}"><button>Validator dashboard</button></a>
+        {% endif %}
+        {% if request.user.role == "annotator" %}
+        <a href="{% url 'annotator_dashboard' %}"><button>Annotator dashboard</button></a>
+        {% endif %}
         <a href="{% url 'logout' %}"><button>Logout</button></a>
 {% endif %}
 </html>
