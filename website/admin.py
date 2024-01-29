@@ -7,6 +7,11 @@ class ProfileAdmin(admin.ModelAdmin):
     list_display = ('username','role','is_approved')
     ordering = ('-is_approved',)
 
+@admin.register(GeneProtein)
+class GeneProteinAdmin(admin.ModelAdmin):
+    fields = (('accession_number','type'),'start','end','genome')
+    list_display = ('accession_number','genome','upload_time')
+
 @admin.register(Genome)
 class GenomeAdmin(admin.ModelAdmin):
     fields = ('chromosome', 'start', 'end')

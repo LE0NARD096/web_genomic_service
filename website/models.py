@@ -56,9 +56,9 @@ class AnnotationProtein(models.Model):
     annotation_time = models.DateTimeField(null=True)
     annotator = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
     geneprotein = models.ForeignKey(GeneProtein, 
-                                  on_delete=models.CASCADE, 
-                                  null=True, 
-                                  blank=True)
+                                    on_delete=models.CASCADE, 
+                                    null=True, 
+                                    blank=True)
 
     def __str__(self):
         return self.gene
