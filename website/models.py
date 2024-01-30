@@ -28,6 +28,8 @@ class AnnotationGenome(models.Model):
     annotation_time = models.DateTimeField(null=True)
     annotator = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
     genome = models.OneToOneField(Genome, on_delete=models.CASCADE)
+    is_validated = models.BooleanField('validated',default=False)
+    
     def __str__(self):
         return self.species
 
@@ -59,6 +61,7 @@ class AnnotationProtein(models.Model):
                                     on_delete=models.CASCADE, 
                                     null=True, 
                                     blank=True)
+    is_validated = models.BooleanField('validated',default=False)
 
     def __str__(self):
         return self.gene

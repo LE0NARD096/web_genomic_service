@@ -9,12 +9,12 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(GeneProtein)
 class GeneProteinAdmin(admin.ModelAdmin):
-    fields = (('accession_number','type'),'start','end','genome')
-    list_display = ('accession_number','genome','upload_time')
+    fields = (('accession_number','type','annotated'),'sequence','start','end','genome')
+    list_display = ('accession_number','genome','annotated','upload_time')
 
 @admin.register(Genome)
 class GenomeAdmin(admin.ModelAdmin):
-    fields = ('chromosome', 'start', 'end')
+    fields = (('chromosome','annotated'), 'start', 'end')
     list_display = ('species', 'chromosome', 'annotated', 'upload_time')
 
     
@@ -29,15 +29,8 @@ class GenomeAdmin(admin.ModelAdmin):
 
 @admin.register(AnnotationGenome)
 class AnnotationGenomeAdmin(admin.ModelAdmin):
-    fields = (('species','annotator','annotated'),'annotation_time')
-    list_display = ('species','genome','annotations_info','annotator','annotation_time')
-
-    def annotations_info(self, obj):
-        return obj.genome.annotated
-    
-    annotations_info.boolean = True
-    annotations_info.short_description = 'Annotated'
-    
+    fields = (('species','annotator','is_validated'),'annotation_time')
+    list_display = ('species','genome','is_validated','annotator','annotation_time')
 
     actions = ['mark_as_annotated','mark_as_not_annotated']
 
@@ -50,19 +43,10 @@ class AnnotationGenomeAdmin(admin.ModelAdmin):
         self.message_user(request, f"Marked {queryset.count()} items aren't annotated anymore.")
 
 
-
-    
-
 @admin.register(AnnotationProtein)
 class AnnotationProteinAdmin(admin.ModelAdmin):
-    list_display = ('gene', 'annotations_info', 'annotation_time')
+    list_display = ('gene', 'is_validated','annotator', 'annotation_time')
     actions = ['mark_as_approved']
-
-    def annotations_info(self, obj):
-        return obj.geneprotein.annotated
-
-    annotations_info.boolean = True
-    annotations_info.short_description = 'Annotated'
 
     def mark_as_approved(self, request, queryset):
         queryset.update(annotated=True)

@@ -13,6 +13,22 @@ class GenomeSearchForm(forms.Form):
     transcript = forms.CharField(label='Transcript', required=False)
     gene = forms.CharField(label='Gene', required=False)
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
+    
+    def clean(self):
+        """
+        Validate the form input
+        """
+        cleaned_data = super().clean()
+        type = cleaned_data.get('output_type')
+
+        #if type == 'gene_protein':
+            #gene = cleaned_data.get('gene')
+           # if not gene:
+                #self.add_error('gene', ("This field is required for gene/protein"))
+    
+
+        return cleaned_data
+
 
 class GenomeAnnotate(forms.ModelForm):
     class Meta:
@@ -33,6 +49,8 @@ class Upload_data(forms.Form):
         widget=forms.ClearableFileInput(attrs={'accept': '.fa'})
     )
     output_type = forms.ChoiceField(label='Upload in', choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')])
+    annotated = forms.BooleanField(label='Annotated sequence', required=False)
+
 
 
 class UserRegistrationForm(UserCreationForm):

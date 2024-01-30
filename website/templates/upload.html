@@ -12,5 +12,11 @@
         <button type="submit">Submit</button>
     </form>
 
+
+    {% if error_message %}
+    <h2>⚠️Error⚠️</h2>
+    <p>{{ error_message }}</p>
+    {% endif %}
+
 </body>
 </html>
