@@ -358,3 +358,110 @@ def annotator_modify(request,type,id):
     form = GenomeAnnotate()
     form.fields = queryset
     return render(request,'Annotator/Annotate_sequences.html',{'form': GenomeAnnotate})
+
+
+
+
+
+
+
+
+from django.shortcuts import render
+from django.template.loader import render_to_string
+from django.http import JsonResponse
+from .models import GeneProtein
+from Bio import SeqIO
+import plotly.graph_objects as go
+
+def visualizza_geni_genoma(genoma):
+    # Recupera tutti i geni annotati sul genoma specificato
+    geni_annotati = GeneProtein.objects.filter(annotated=True, genome=genoma)
+
+    # Carica il genoma di riferimento utilizzando BioPython
+    with open(genoma.genome_file.path, "r") as fasta_file:
+        genoma_record = SeqIO.read(fasta_file, "fasta")
+
+    # Crea una lista di tracce per i geni
+    tracce = []
+    for gene in geni_annotati:
+        traccia_gene = go.Scatter(x=[gene.start, gene.end],
+                                   y=[0, 0],
+                                   mode='markers+text',
+                                   marker=dict(size=10, symbol='line-ns-open', color='blue'),
+                                   text=[gene.accession_number],
+                                   name=gene.accession_number)
+        tracce.append(traccia_gene)
+
+    # Crea una traccia per il genoma di riferimento
+    traccia_genoma = go.Scatter(x=[0, len(genoma_record.seq)],
+                                y=[0, 0],
+                                mode='lines',
+                                line=dict(color='black', width=5),
+                                name='Genoma di riferimento')
+
+    # Aggiungi tutte le tracce al layout
+    layout = go.Layout(title='Geni sul genoma',
+                       xaxis=dict(title='Posizione nel genoma'),
+                       yaxis=dict(visible=False),
+                       showlegend=True)
+
+    # Crea la figura
+    figura = go.Figure(data=[traccia_genoma] + tracce, layout=layout)
+
+    # Converti la figura in HTML
+    grafico_html = figura.to_html(full_html=False)
+
+    return grafico_html
+
+def search_results(request):
+    if request.method == 'POST':
+        form = GenomeSearchForm(request.POST)
+        if form.is_valid():
+            sequence_query = form.cleaned_data['sequence']
+            species = form.cleaned_data['species']
+            gene = form.cleaned_data['gene']
+            transcript = form.cleaned_data['transcript']
+            chromosome = form.cleaned_data['chromosome']
+            output_type = form.cleaned_data['output_type']
+
+            c = 0
+            final_result = []
+
+            if output_type == 'genome':
+                results = Genome.objects.filter(
+                            Q(annotated=True) &
+                            Q(chromosome=chromosome) &
+                            Q(annotationgenome__species__contains=species)
+                            )
+
+            else:
+                 if validate(sequence_query,'dna'):
+                    results = GeneProtein.objects.filter(
+                            Q(annotated=True) &
+                            Q(type='cds') &
+                            Q(annotationprotein__gene__contains=gene) &
+                            Q(annotationprotein__transcript__contains=transcript) &
+                            Q(genome__chromosome__contains=chromosome) &
+                            Q(genome__annotationgenome__species__contains=species)
+                            )
+
+                 else:
+                     results = GeneProtein.objects.filter(
+                            Q(annotated=True) &
+                            Q(type='pep') &
+                            Q(annotationprotein__gene__contains=gene) &
+                            Q(annotationprotein__transcript__contains=transcript) &
+                            Q(genome__chromosome__contains=chromosome) &
+                            Q(genome__annotationgenome__species__contains=species)
+                            )
+            
+
+            for genoma in results:
+                grafico_html = visualizza_geni_genoma(genoma)
+                final_result.append({'genoma': genoma, 'grafico_html': grafico_html})
+
+            return render(request, 'search_results.html', {'results': final_result})
+    else:
+        form = GenomeSearchForm()
+
+    return render(request, 'search_form.html', {'form': form})
