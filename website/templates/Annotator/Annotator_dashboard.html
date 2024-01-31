@@ -1,17 +1,12 @@
 <h2>Sequences Assigned to You</h2>
-    <h3>Gene/Proteins</h3>
-    <ul>
-        {% for protein_sequence in protein_annotations %}
-        <a href="{% url 'annotation' protein_sequence.genome.type protein_sequence.id %}">
-            <li>{{ protein_sequence.id }}</li>
+
+<h3>Gene/Proteins</h3>
+<ul>
+    {% for protein_sequence in protein_annotations %}
+    <li>
+        <a href="{% url 'annotation' protein_sequence.gene protein_sequence.id %}">
+            {{ protein_sequence.gene }} {{ protein_sequence.id }}
         </a>
-        {% endfor %}
-    </ul>
-    <h3>Genome</h3>
-    <ul>
-        {% for genome_sequence in genome_annotations %}
-        <a href="{% url 'annotation' 'genome' genome_sequence.id %}">
-            <li>{{ genome_sequence.id }} {{ genome_sequence.species }} </li>
-        </a>
-        {% endfor %}
-    </ul>
+    </li>
+    {% endfor %}
+</ul>

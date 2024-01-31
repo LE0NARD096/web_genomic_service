@@ -1,6 +1,6 @@
 from typing import Any
 from django import forms
-from .models import Profile, AnnotationProtein, AnnotationGenome
+from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from Bio import SeqIO
@@ -29,11 +29,25 @@ class GenomeSearchForm(forms.Form):
 
         return cleaned_data
 
-
-class GenomeAnnotate(forms.ModelForm):
+class ProteinAnnotate(forms.ModelForm):
     class Meta:
-        model = AnnotationGenome
+        model = AnnotationProtein
         fields = '__all__'
+        exclude = ['annotator','is_annotated','annotation_time']
+
+class SequenceProtein(forms.ModelForm):
+    class Meta:
+        model = GeneProtein
+        fields = '__all__'
+        exclude = ['is_validated']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field_name in ['sequence']:  
+            self.fields[field_name].label = ''
+
+
 
 class DownloadTextForm(forms.Form):
     StartPosition = forms.IntegerField(label='Start', required=False)

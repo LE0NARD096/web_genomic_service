@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein
-from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, GenomeAnnotate
+from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein
 from Bio import SeqIO
 from Bio.Seq import Seq
 from io import StringIO
@@ -137,7 +137,7 @@ def search_results(request):
             if output_type == 'genome':
 
                 results = Genome.objects.filter(
-                                            Q(annotated=True) &
+                                            Q(is_validated=True) &
                                             Q(chromosome__startswith=chromosome) &
                                             Q(annotationgenome__species__contains=species))
             
@@ -147,7 +147,7 @@ def search_results(request):
                  
                  if validate(sequence_query,'dna'):
                     results = GeneProtein.objects.filter(
-                            Q(annotated=True) &
+                            Q(is_validated=True) &
                             Q(type='cds') &
                             # Q(annotationprotein__gene__contains=gene) &
                             # Q(annotationprotein__transcript__contains=transcript) &
@@ -157,7 +157,7 @@ def search_results(request):
 
                  else:
                      results = GeneProtein.objects.filter(
-                            Q(annotated=True) &
+                            Q(is_validated=True) &
                             Q(type='pep') &
                             # Q(annotationprotein__gene__contains=gene) &
                             # Q(annotationprotein__transcript__contains=transcript) &
@@ -246,6 +246,9 @@ def upload(request):
                     genome[0].end=end
                     genome[0].save()
                 
+                elif genome[1]:
+                    genome[0].save()
+                
                 else:
                     error_message = 'This genome is already in the database'
                     return render(request, 'upload.html', {'form': form, 'error_message': error_message})
@@ -256,7 +259,9 @@ def upload(request):
                     id_user = Profile.objects.get(id=username_id)
                     annotations = AnnotationGenome.objects.create(species=species,
                                                                     genome=genome[0],
-                                                                    annotator=id_user)
+                                                                    annotator=id_user,
+                                                                    is_annotated=True,
+                                                                    annotation_time = timezone.now())
                     annotations.save()
 
             else :
@@ -304,8 +309,8 @@ def visualisation_sequence(request,type,id):
 
 @login_required
 def validator_view(request):
-    unvalidated_genomes = Genome.objects.filter(annotated=False, annotationgenome__isnull=True)
-    unvalidated_proteins = GeneProtein.objects.filter(annotated=False,annotationprotein__isnull=True)
+    unvalidated_genomes = Genome.objects.filter(is_validated=False, annotationgenome__isnull=True)
+    unvalidated_proteins = GeneProtein.objects.filter(is_validated=False,annotationprotein__isnull=True)
     annotators = None
 
 
@@ -358,11 +363,7 @@ def assigned_annotators(request):
 def annotator_view(request):
     annotator = request.user.id
     unvalidated_genome_annotations= Genome.objects.select_related('annotations').all()
-
-    print(unvalidated_genome_annotations[1].annotations.annotator)
-    
-    AnnotationGenome.objects.filter(annotated=False, annotator=annotator)
-    unvalidated_protein_annotations= AnnotationProtein.objects.filter(annotated=False, annotator=annotator)
+    unvalidated_protein_annotations= AnnotationProtein.objects.filter(is_annotated=False, annotator=annotator)
 
     context = {
         'protein_annotations': unvalidated_protein_annotations,
@@ -373,7 +374,54 @@ def annotator_view(request):
 
 @login_required
 def annotator_modify(request,type,id):
-    queryset = get_object_or_404(AnnotationGenome, id=id)
-    form = GenomeAnnotate()
-    form.fields = queryset
-    return render(request,'Annotator/Annotate_sequences.html',{'form': GenomeAnnotate})
+    protein_annotate_instance = AnnotationProtein.objects.get(pk=id)
+    print(protein_annotate_instance.geneprotein)
+    sequence_protein_instance = GeneProtein.objects.get(pk=protein_annotate_instance.geneprotein.id)
+    
+    request.session['id_annotate'] = id
+    request.session['id_sequence'] = sequence_protein_instance.id
+
+    print(protein_annotate_instance.annotator)
+    # Creating forms and passing instances
+    protein_annotate_form = ProteinAnnotate(instance=protein_annotate_instance)
+    sequence_protein_form = SequenceProtein(instance=sequence_protein_instance)
+
+    return render(request,'Annotator/Annotate_sequences.html',{'form': protein_annotate_form , 'form2': sequence_protein_form})
+
+
+def save_annotation(request):
+    id_annotate = request.session.get('id_annotate')
+    id_sequence = request.session.get('id_sequence')
+
+    if request.method == 'POST':
+        form_annotate = ProteinAnnotate(request.POST)
+        form_sequence = SequenceProtein(request.POST)
+
+        if form_annotate.is_valid() and form_sequence.is_valid():
+            annotate = form_annotate.cleaned_data
+            sequence = form_sequence.cleaned_data
+            print(annotate)
+            print(sequence)
+
+            update_annotation = AnnotationProtein.objects.get(pk=id_annotate)
+
+            for field_name, field_value in annotate.items():
+                setattr(update_annotation, field_name, field_value)
+
+            update_annotation.is_annotated = True
+            update_annotation.annotation_time = timezone.now()
+            update_annotation.save()
+
+            update_sequence = GeneProtein.objects.get(pk=id_sequence)
+            
+            for field_name, field_value in sequence.items():
+                setattr(update_sequence, field_name, field_value)
+            
+            update_sequence.save()
+
+            return render(request, 'Annotator/Annotation_validation.html')
+
+        else:
+            return render(request,'Annotator/Annotate_sequences.html',{'form': form_annotate , 'form2': form_sequence})
+
+    return render(request,'Annotator/Annotate_sequences.html',{'form': form_annotate , 'form2': form_sequence})

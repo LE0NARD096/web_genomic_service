@@ -9,13 +9,13 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(GeneProtein)
 class GeneProteinAdmin(admin.ModelAdmin):
-    fields = (('accession_number','type','annotated'),'sequence','start','end','genome')
-    list_display = ('accession_number','genome','annotated','upload_time')
+    fields = (('accession_number','type','is_validated'),'sequence','start','end','genome')
+    list_display = ('accession_number','genome','is_validated','upload_time')
 
 @admin.register(Genome)
 class GenomeAdmin(admin.ModelAdmin):
-    fields = (('chromosome','annotated'), 'start', 'end')
-    list_display = ('species', 'chromosome', 'annotated', 'upload_time')
+    fields = (('chromosome','is_validated'), 'start', 'end')
+    list_display = ('species', 'chromosome', 'is_validated', 'upload_time')
 
     
     def species(self, obj):
@@ -29,8 +29,8 @@ class GenomeAdmin(admin.ModelAdmin):
 
 @admin.register(AnnotationGenome)
 class AnnotationGenomeAdmin(admin.ModelAdmin):
-    fields = (('species','annotator','is_validated'),'annotation_time')
-    list_display = ('species','genome','is_validated','annotator','annotation_time')
+    fields = (('species','annotator','is_annotated'),'annotation_time')
+    list_display = ('species','genome','is_annotated','annotator','annotation_time')
 
     actions = ['mark_as_annotated','mark_as_not_annotated']
 
@@ -45,7 +45,7 @@ class AnnotationGenomeAdmin(admin.ModelAdmin):
 
 @admin.register(AnnotationProtein)
 class AnnotationProteinAdmin(admin.ModelAdmin):
-    list_display = ('gene', 'is_validated','annotator', 'annotation_time')
+    list_display = ('gene', 'is_annotated','annotator', 'annotation_time')
     actions = ['mark_as_approved']
 
     def mark_as_approved(self, request, queryset):
