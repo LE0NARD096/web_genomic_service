@@ -16,6 +16,9 @@ from django.shortcuts import redirect
 from .forms import UserRegistrationForm
 from django.utils import timezone
 from django.db.models import Q
+from django.template.loader import render_to_string
+from django.http import JsonResponse
+import plotly.graph_objects as go
 
 def home(request):
     register_url = reverse('register') 
@@ -358,3 +361,53 @@ def annotator_modify(request,type,id):
     form = GenomeAnnotate()
     form.fields = queryset
     return render(request,'Annotator/Annotate_sequences.html',{'form': GenomeAnnotate})
+
+
+
+
+
+
+
+
+
+
+def visualizza_geni_genoma(genoma):
+    # Recupera tutti i geni annotati sul genoma specificato
+    geni_annotati = GeneProtein.objects.filter(annotated=False, genome=genoma)
+
+    # Crea una lista di tracce per i geni
+    tracce = []
+    for gene in geni_annotati:
+        traccia_gene = go.Scatter(x=[gene.start, gene.end],
+                                   y=[0, 0],
+                                   mode='markers+text',
+                                   marker=dict(size=10, symbol='line-ns-open', color='blue'),
+                                   text=[gene.accession_number],
+                                   name=gene.accession_number)
+        tracce.append(traccia_gene)
+
+    # Aggiungi tutte le tracce al layout
+    layout = go.Layout(title='Geni sul genoma',
+                       xaxis=dict(title='Posizione nel genoma'),
+                       yaxis=dict(visible=False),
+                       showlegend=True)
+
+    # Crea la figura
+    figura = go.Figure(data=tracce, layout=layout)
+
+    # Converti la figura in HTML
+    grafico_html = figura.to_html(full_html=False)
+
+    return grafico_html
+
+def visualizzazione(request):
+    # Recupera un'istanza di GeneProtein (esempio)
+    geneprotein_instance = GeneProtein.objects.first()
+
+    # Ora otteniamo l'istanza di Genome associata a questa istanza di GeneProtein
+    genome_instance = geneprotein_instance.genome
+
+    # Ora possiamo chiamare la funzione visualizza_geni_genoma con l'istanza di Genome
+    grafico_html = visualizza_geni_genoma(genome_instance)
+
+    return render(request, 'visualization.html', {'grafico_html': grafico_html})
