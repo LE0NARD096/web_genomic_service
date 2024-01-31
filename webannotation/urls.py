@@ -17,11 +17,13 @@ Including another URLconf
 from django.urls import path, include
 from website import views
 from django.contrib import admin
+from website.views import visualizzazione
 
 urlpatterns = [
     path('', views.home, name='home'),  # Add this line for the home page
     path("admin/", admin.site.urls),
     path('', include('website.urls')),
+    path('visualization/', visualizzazione, name='visualizzazione')
     # ... other url patterns ...
 ]
 
