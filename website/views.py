@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein
-from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, GenomeAnnotate
+from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein
 from Bio import SeqIO
 from Bio.Seq import Seq
 from io import StringIO
@@ -131,50 +131,51 @@ def search_results(request):
         if form.is_valid():
             sequence_query = form.cleaned_data['sequence']
             species = form.cleaned_data['species']
-            gene = form.cleaned_data['gene']
-            transcript = form.cleaned_data['transcript']
             chromosome = form.cleaned_data['chromosome']
             output_type = form.cleaned_data['output_type']
-
-           
-           
+                   
             c = 0
             final_result = []
 
             if output_type == 'genome':
-                results = Genome.objects.filter(
-                            Q(annotated=True) &
-                            Q(chromosome=chromosome) &
-                            Q(annotationgenome__species__contains=species)
-                            )
 
+                results = Genome.objects.filter(
+                                            Q(is_validated=True) &
+                                            Q(chromosome__startswith=chromosome) &
+                                            Q(annotationgenome__species__contains=species))
+            
             else:
+                 gene = form.cleaned_data['gene']
+                 transcript = form.cleaned_data['transcript']
+                 
                  if validate(sequence_query,'dna'):
                     results = GeneProtein.objects.filter(
-                            Q(annotated=True) &
+                            Q(is_validated=True) &
                             Q(type='cds') &
-                            Q(annotationprotein__gene__contains=gene) &
-                            Q(annotationprotein__transcript__contains=transcript) &
-                            Q(genome__chromosome__contains=chromosome) &
+                            # Q(annotationprotein__gene__contains=gene) &
+                            # Q(annotationprotein__transcript__contains=transcript) &
+                            Q(genome__chromosome__startswith=chromosome) &
                             Q(genome__annotationgenome__species__contains=species)
                             )
 
                  else:
                      results = GeneProtein.objects.filter(
-                            Q(annotated=True) &
+                            Q(is_validated=True) &
                             Q(type='pep') &
-                            Q(annotationprotein__gene__contains=gene) &
-                            Q(annotationprotein__transcript__contains=transcript) &
-                            Q(genome__chromosome__contains=chromosome) &
+                            # Q(annotationprotein__gene__contains=gene) &
+                            # Q(annotationprotein__transcript__contains=transcript) &
+                            Q(genome__chromosome__startswith=chromosome) &
                             Q(genome__annotationgenome__species__contains=species)
                             )
-            
 
-            print(results)
+            
             for DNAsequence in results:
                 c += 1 
+                print(DNAsequence.accession_number)
                 my_dna = Seq(DNAsequence.sequence)
+               
                 if my_dna.count(sequence_query) > 0:
+                    
                     if output_type == 'genome':
                         result_dic = {
                             'type': 'genome',
@@ -188,6 +189,7 @@ def search_results(request):
                             'id': DNAsequence.id,
                             }
                     final_result.append(result_dic)
+                    print(final_result)
             
             return render(request, 'search_results.html', {'results': final_result})
     else:
@@ -211,9 +213,15 @@ def upload(request):
         form = Upload_data(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['sequence']
+            if 'annotated' not in request.POST:
+                annotated = False
+            else:
+                annotated = request.POST['annotated']
             type = request.POST['output_type']
             file_content = file.read().decode('utf-8')
+            file_name = file.name 
             file_stream = StringIO(file_content)
+            username_id = request.user.id
 
             if type == 'genome':
                 record = SeqIO.parse(file_stream, 'fasta')
@@ -224,29 +232,46 @@ def upload(request):
                 chromosome = description[2]
                 start = description[4]
                 end = description[5]
+                    
+                genome = Genome.objects.get_or_create(chromosome=chromosome,
+                                                    defaults={
+                                                        'sequence':sequence,
+                                                        'start':start,
+                                                        'end':end,
+                                                        'upload_time':timezone.now()
+                                                            }
+                                                    )
 
-                if Genome.objects.filter(chromosome=chromosome).exists():
-                    genome = Genome.objects.get(chromosome=chromosome)
-                    genome.sequence = sequence
-                    genome.start = start
-                    genome.end = end
-                    
-                    
+                # We populate the "artificial" genome created by the proteins
+                if not genome[1] and genome[0].sequence is None:
+                    genome[0].sequence=sequence
+                    genome[0].start=start
+                    genome[0].end=end
+                    genome[0].save()
+                
+                elif genome[1]:
+                    genome[0].save()
+                
                 else:
-                    
-                    genome = Genome.objects.create(sequence=sequence,
-                                               chromosome=chromosome,
-                                               start=start,
-                                               end=end,
-                                               upload_time=timezone.now())
-                
-                
-                genome.save()
+                    error_message = 'This genome is already in the database'
+                    return render(request, 'upload.html', {'form': form, 'error_message': error_message})
+                               
+                if annotated:
+                    species = re.split(r'[_.]', file_name)[:-1]
+                    species = " ".join(species)
+                    id_user = Profile.objects.get(id=username_id)
+                    annotations = AnnotationGenome.objects.create(species=species,
+                                                                    genome=genome[0],
+                                                                    annotator=id_user,
+                                                                    is_annotated=True,
+                                                                    annotation_time = timezone.now())
+                    annotations.save()
 
             else :
                 for record in SeqIO.parse(file_stream, 'fasta'):
                     a_n = record.id
                     sequence = record.seq
+                    print(sequence)
                     type = record.description.split()[1].lower()
                     description = record.description.split(':')
                     start = description[3]
@@ -257,8 +282,7 @@ def upload(request):
                     if Genome.objects.filter(chromosome=chromosome).exists():
                         genome = Genome.objects.get(chromosome=chromosome)
                     else:
-                        genome = Genome.objects.create(sequence='empty',
-                                                       chromosome=chromosome,
+                        genome = Genome.objects.create(chromosome=chromosome,
                                                        upload_time=timezone.now())
                         genome.save()
                     
@@ -288,8 +312,8 @@ def visualisation_sequence(request,type,id):
 
 @login_required
 def validator_view(request):
-    unvalidated_genomes = Genome.objects.filter(annotated=False, annotationgenome__isnull=True)
-    unvalidated_proteins = GeneProtein.objects.filter(annotated=False,annotationprotein__isnull=True)
+    unvalidated_genomes = Genome.objects.filter(is_validated=False, annotationgenome__isnull=True)
+    unvalidated_proteins = GeneProtein.objects.filter(is_validated=False,annotationprotein__isnull=True)
     annotators = None
 
 
@@ -342,11 +366,7 @@ def assigned_annotators(request):
 def annotator_view(request):
     annotator = request.user.id
     unvalidated_genome_annotations= Genome.objects.select_related('annotations').all()
-
-    print(unvalidated_genome_annotations[1].annotations.annotator)
-    
-    AnnotationGenome.objects.filter(annotated=False, annotator=annotator)
-    unvalidated_protein_annotations= AnnotationProtein.objects.filter(annotated=False, annotator=annotator)
+    unvalidated_protein_annotations= AnnotationProtein.objects.filter(is_annotated=False, annotator=annotator)
 
     context = {
         'protein_annotations': unvalidated_protein_annotations,
@@ -357,18 +377,55 @@ def annotator_view(request):
 
 @login_required
 def annotator_modify(request,type,id):
-    queryset = get_object_or_404(AnnotationGenome, id=id)
-    form = GenomeAnnotate()
-    form.fields = queryset
-    return render(request,'Annotator/Annotate_sequences.html',{'form': GenomeAnnotate})
+    protein_annotate_instance = AnnotationProtein.objects.get(pk=id)
+    print(protein_annotate_instance.geneprotein)
+    sequence_protein_instance = GeneProtein.objects.get(pk=protein_annotate_instance.geneprotein.id)
+    
+    request.session['id_annotate'] = id
+    request.session['id_sequence'] = sequence_protein_instance.id
+
+    print(protein_annotate_instance.annotator)
+    # Creating forms and passing instances
+    protein_annotate_form = ProteinAnnotate(instance=protein_annotate_instance)
+    sequence_protein_form = SequenceProtein(instance=sequence_protein_instance)
+
+    return render(request,'Annotator/Annotate_sequences.html',{'form': protein_annotate_form , 'form2': sequence_protein_form})
 
 
+def save_annotation(request):
+    id_annotate = request.session.get('id_annotate')
+    id_sequence = request.session.get('id_sequence')
 
+    if request.method == 'POST':
+        form_annotate = ProteinAnnotate(request.POST)
+        form_sequence = SequenceProtein(request.POST)
 
+        if form_annotate.is_valid() and form_sequence.is_valid():
+            annotate = form_annotate.cleaned_data
+            sequence = form_sequence.cleaned_data
+         
+            update_annotation = AnnotationProtein.objects.get(pk=id_annotate)
 
+            for field_name, field_value in annotate.items():
+                setattr(update_annotation, field_name, field_value)
 
+            update_annotation.is_annotated = True
+            update_annotation.annotation_time = timezone.now()
+            update_annotation.save()
 
+            update_sequence = GeneProtein.objects.get(pk=id_sequence)
+            
+            for field_name, field_value in sequence.items():
+                setattr(update_sequence, field_name, field_value)
+            
+            update_sequence.save()
 
+            return render(request, 'Annotator/Annotation_validation.html')
+
+        else:
+            return render(request,'Annotator/Annotate_sequences.html',{'form': form_annotate , 'form2': form_sequence})
+
+    return render(request,'Annotator/Annotate_sequences.html',{'form': form_annotate , 'form2': form_sequence})
 
 
 def visualizza_geni_genoma(genoma):

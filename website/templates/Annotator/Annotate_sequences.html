@@ -1,4 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Template</title>
+    <link rel="stylesheet" href="{% static 'css/annotate.css' %}">
+</head>
+<body>
 
-    {% csrf_token %}
-    {{ form.as_p }}
- 
+<div class="form-container">
+    <form method="post" action="{% url 'annotated' %}" class="annotation-form">
+        {% csrf_token %}
+        <div class="form-header">
+            <h2>Annotation Form</h2>
+        </div>
+        <div class="form-field">
+            {{ form.as_p }}
+        </div>
+        
+        <div class="form-header">
+            <h2>Sequence Form</h2>
+        </div>
+        <div class="form-field">
+            {{ form2.as_p }}
+        </div>
+
+        <button type="submit" class="submit-button">Annotate</button>
+    </form>
+</div>
+
+</body>
+</html>

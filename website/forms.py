@@ -1,6 +1,6 @@
 from typing import Any
 from django import forms
-from .models import Profile, AnnotationProtein, AnnotationGenome
+from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from Bio import SeqIO
@@ -13,11 +13,41 @@ class GenomeSearchForm(forms.Form):
     transcript = forms.CharField(label='Transcript', required=False)
     gene = forms.CharField(label='Gene', required=False)
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
+    
+    def clean(self):
+        """
+        Validate the form input
+        """
+        cleaned_data = super().clean()
+        type = cleaned_data.get('output_type')
 
-class GenomeAnnotate(forms.ModelForm):
+        #if type == 'gene_protein':
+            #gene = cleaned_data.get('gene')
+           # if not gene:
+                #self.add_error('gene', ("This field is required for gene/protein"))
+    
+
+        return cleaned_data
+
+class ProteinAnnotate(forms.ModelForm):
     class Meta:
-        model = AnnotationGenome
+        model = AnnotationProtein
         fields = '__all__'
+        exclude = ['annotator','is_annotated','annotation_time']
+
+class SequenceProtein(forms.ModelForm):
+    class Meta:
+        model = GeneProtein
+        fields = '__all__'
+        exclude = ['is_validated']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field_name in ['sequence']:  
+            self.fields[field_name].label = ''
+
+
 
 class DownloadTextForm(forms.Form):
     StartPosition = forms.IntegerField(label='Start', required=False)
@@ -33,6 +63,8 @@ class Upload_data(forms.Form):
         widget=forms.ClearableFileInput(attrs={'accept': '.fa'})
     )
     output_type = forms.ChoiceField(label='Upload in', choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')])
+    annotated = forms.BooleanField(label='Annotated sequence', required=False)
+
 
 
 class UserRegistrationForm(UserCreationForm):

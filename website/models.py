@@ -18,7 +18,7 @@ class Genome(models.Model):
     start = models.IntegerField(null=True)
     end = models.IntegerField(null=True)
     upload_time = models.DateTimeField(auto_now=True)
-    annotated = models.BooleanField('annotated',default=False)
+    is_validated = models.BooleanField('validated',default=False)
 
     def __str__(self):
         return self.chromosome 
@@ -28,6 +28,8 @@ class AnnotationGenome(models.Model):
     annotation_time = models.DateTimeField(null=True)
     annotator = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
     genome = models.OneToOneField(Genome, on_delete=models.CASCADE)
+    is_annotated = models.BooleanField('annotated',default=False)
+    
     def __str__(self):
         return self.species
 
@@ -40,7 +42,7 @@ class GeneProtein(models.Model):
     genome = models.ForeignKey(Genome, 
                                on_delete=models.CASCADE)
     upload_time = models.DateTimeField(auto_now=True)
-    annotated = models.BooleanField('annotated',default=False)
+    is_validated = models.BooleanField('validated',default=False)
 
     def __str__(self):
         return self.accession_number + " " + self.type 
@@ -59,6 +61,7 @@ class AnnotationProtein(models.Model):
                                     on_delete=models.CASCADE, 
                                     null=True, 
                                     blank=True)
+    is_annotated = models.BooleanField('annotated',default=False)
 
     def __str__(self):
         return self.gene
