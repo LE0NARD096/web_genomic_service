@@ -1,18 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% extends "base.html" %}
+{% block title %}Home page{% endblock %}
+{% block content %}
     <meta http-equiv="refresh" content="2;url=/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Page Title</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            text-align: center;
-            padding: 50px;
-        }
 
+    <style>
         .message {
             font-size: 18px;
             color: #333;
@@ -24,13 +15,13 @@
             color: #666;
         }
     </style>
-</head>
-<body>
+    
     <div class="message">
         Your changes have been taken into account.
     </div>
     <div class="redirect-info">
         You will be redirected in 2 seconds. If not, <a href="/">click here</a>.
     </div>
-</body>
-</html>
+
+
+{% endblock %}

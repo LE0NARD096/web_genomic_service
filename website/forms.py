@@ -1,10 +1,14 @@
 from typing import Any
 from django import forms
-from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein
+from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein, Genome
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from Bio import SeqIO
 from io import StringIO
+from django.utils.safestring import mark_safe
+from django.urls import reverse
+
+
 
 class GenomeSearchForm(forms.Form):
     sequence = forms.CharField(label='Sequence query', required=True,widget=forms.Textarea)
@@ -46,6 +50,18 @@ class SequenceProtein(forms.ModelForm):
 
         for field_name in ['sequence']:  
             self.fields[field_name].label = ''
+
+class GenomeAnnotate(forms.ModelForm):
+    class Meta:
+        model = AnnotationGenome
+        fields = '__all__'
+        exclude = ['annotator','is_annotated','annotation_time','genome']
+
+class SequenceGenome(forms.ModelForm):
+    class Meta:
+        model = Genome
+        fields = '__all__'
+        exclude = ['is_validated','sequence']
 
 
 

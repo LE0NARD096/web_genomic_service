@@ -1,7 +1,11 @@
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+{% extends "base.html" %}
+{% block title %}Home page{% endblock %}
+{% block content %}
 
 <form method="post" action="{% url 'search_results' %}" id="searchForm">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Rechercher</button>
 </form>
+
+{% endblock %}

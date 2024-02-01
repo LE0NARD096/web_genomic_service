@@ -1,14 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title >Validator Dashboard</title>
+{% extends "base.html" %}
+{% block title %}Validator Dashboard{% endblock %}
+{% block content %}
     <style>
         /* Optional: Add some styling to align tables side by side */
         .table-container {
             display: flex;
             justify-content: space-between;
-            margin-right: 500px;
-            margin-left: 500px;
+            margin-right: 200px;
+            margin-left: 300px;
         }
         button {
             text-align: center;
@@ -16,8 +15,7 @@
             display: block; 
         }
     </style>
-</head>
-<body>
+
     <h2 style="text-align: center;">Assign an annotator:</h2>
     <form method="post" action="{% url 'validate_annotators' %}">
         {% csrf_token %}
@@ -86,5 +84,5 @@
 
         <button  type="submit">Confirm choices</button>
     </form>
-</body>
-</html>
+
+{% endblock %}

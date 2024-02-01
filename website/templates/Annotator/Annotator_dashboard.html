@@ -1,12 +1,44 @@
-<h2>Sequences Assigned to You</h2>
+{% extends "base.html" %}
+{% block title %}Home page{% endblock %}
+{% block content %}
 
-<h3>Gene/Proteins</h3>
-<ul>
-    {% for protein_sequence in protein_annotations %}
-    <li>
-        <a href="{% url 'annotation' protein_sequence.gene protein_sequence.id %}">
-            {{ protein_sequence.gene }} {{ protein_sequence.id }}
-        </a>
-    </li>
-    {% endfor %}
-</ul>
+<h2 style="text-align: center;">Sequences Assigned to You</h2>
+
+<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+
+    <div class="card mt-2" style="width: 400px;">
+        <h3 style="text-align: center;">Gene/Proteins</h3>
+        {% for protein_sequence in protein_annotations %}
+            <div class="card-body d-flex flex-row justify-content-between">
+                <div>
+                    {{ protein_sequence.gene }} {{ protein_sequence.geneprotein.accession_number }}
+                </div>
+                <div>
+                    <a class="btn btn-success" href="{% url 'annotation' 'cds_pep' protein_sequence.id %}" role="button">Annotate</a>
+                </div>
+            </div>
+            <div class="card-footer text-muted">Upload time: {{ protein_sequence.geneprotein.upload_time }}</div>
+        {% empty %}
+        <p style="text-align: center;" >No work to be done</p>
+        {% endfor %}
+    </div>
+
+    <div class="card mt-2" style="width: 400px;">
+        <h3 style="text-align: center;">Genomes</h3>
+        {% for genome_sequence in genome_annotations %}
+            <div class="card-body d-flex flex-row justify-content-between">
+                <div>
+                    {{ genome_sequence.species }} {{ genome_sequence.genome.chromosome }}
+                </div>
+                <div>
+                    <a class="btn btn-success" href="{% url 'annotation' 'genome' genome_sequence.id %}" role="button">Annotate</a>
+                </div>
+            </div>
+            <div class="card-footer text-muted">Upload time: {{ genome_sequence.genome.upload_time }}</div>
+        {% empty %}
+            <p style="text-align: center;">No work to be done</p>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,22 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Your Upload Page</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Home page{% endblock %}
+{% block content %}
     <h2>Upload Data</h2>
-    <form method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data">
+    <form method="post" action="{% url 'upload_file' %}?next={{ request.GET.next }}" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
 
         <button type="submit">Submit</button>
     </form>
 
-
     {% if error_message %}
-    <h2>⚠️Error⚠️</h2>
-    <p>{{ error_message }}</p>
+        <h2>⚠️Error⚠️</h2>
+        <p>{{ error_message }}</p>
     {% endif %}
 
-</body>
-</html>
+{% endblock %}

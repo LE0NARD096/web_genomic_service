@@ -1,13 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Annotate Sequences{% endblock %}
+{% block content %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Template</title>
-    <link rel="stylesheet" href="{% static 'css/annotate.css' %}">
-</head>
-<body>
 
 <div class="form-container">
     <form method="post" action="{% url 'annotated' %}" class="annotation-form">
@@ -30,5 +24,4 @@
     </form>
 </div>
 
-</body>
-</html>
+{% endblock %}

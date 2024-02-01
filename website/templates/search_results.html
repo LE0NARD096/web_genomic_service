@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Home page{% endblock %}
+{% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/search.css' %}">
 
@@ -14,5 +17,6 @@
 {% else %}
     <p>Aucun résultat trouvé.</p>
 {% endif %}
+{% endblock %}
 
 

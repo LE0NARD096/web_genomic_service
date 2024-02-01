@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Home page{% endblock %}
 {% block content %}
-{% if request.user.is_authenticated %}
-<h1>Welcome {{ request.user.username }} to Our Annotation Platform</h1>
-{% else %}
-<h1>Welcome to Our Annotation Platform</h1>
-{% endif %}
-<p>This is the home page of our application for annotating and analyzing bacterial genomes.</p>
+  <style>
+    .centered {
+      text-align: center;
+    }
+  </style>
+
+  {% if request.user.is_authenticated %}
+    <h1 class="centered">Welcome {{ request.user.username }} to BactAHub</h1>
+  {% else %}
+    <h1 class="centered">Welcome to BactAHub</h1>
+  {% endif %}
+  <p class="centered">This is the home page of our application for annotating and analyzing bacterial genomes.</p>
 {% endblock %}
