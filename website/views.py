@@ -272,29 +272,62 @@ def upload(request):
                 for record in SeqIO.parse(file_stream, 'fasta'):
                     a_n = record.id
                     sequence = record.seq
-                    print(sequence)
                     type = record.description.split()[1].lower()
-                    description = record.description.split(':')
-                    start = description[3]
-                    end = description[4]
-                    chromosome = description[1]
+                    description = re.split(r'[: ]', record.description)
+                    start = description[5]
+                    end = description[6]
+                    chromosome = description[3]
 
 
-                    if Genome.objects.filter(chromosome=chromosome).exists():
-                        genome = Genome.objects.get(chromosome=chromosome)
-                    else:
-                        genome = Genome.objects.create(chromosome=chromosome,
-                                                       upload_time=timezone.now())
+                    genome, created = Genome.objects.get_or_create(chromosome=chromosome,
+                                                    defaults={
+                                                        'upload_time':timezone.now()
+                                                            })
+
+                    if created and genome.sequence is None:
                         genome.save()
+                   
+                    gene_protein, created_protein = GeneProtein.objects.get_or_create(accession_number=a_n,
+                                                        defaults={
+                                                            'sequence':sequence,
+                                                            'type':type,
+                                                            'start':start,
+                                                            'end':end,
+                                                            'genome':genome,
+                                                            'upload_time':timezone.now()
+                                                            })
                     
-                    gene_protein = GeneProtein.objects.create(accession_number=a_n,
-                                                        sequence=sequence,
-                                                        type=type,
-                                                        start=start,
-                                                        end=end,
-                                                        genome=genome,
-                                                        upload_time = timezone.now())
-                    gene_protein.save()
+                    if created_protein:
+                        gene_protein.save()
+                    else:
+                        error_message = 'The protein '+ a_n + ' is already in the database'
+                        return render(request, 'upload.html', {'form': form, 'error_message': error_message})
+
+
+
+                    if annotated and created_protein:
+
+                        gene=description[9]
+                        transcript=a_n
+                        gene_biotype=description[12]
+                        gene_symbol=description[15]
+                        transcript_biotype=description[14]
+                        description_protein=' '.join(description[18:21])
+                        id_user = Profile.objects.get(id=username_id)
+
+                        annotation_protein = AnnotationProtein.objects.create(
+                                                                        gene=gene,
+                                                                        transcript=transcript,
+                                                                        gene_biotype=gene_biotype, 
+                                                                        transcript_biotype=transcript_biotype,
+                                                                        gene_symbol=gene_symbol, 
+                                                                        description=description_protein, 
+                                                                        annotator=id_user,
+                                                                        geneprotein=gene_protein,
+                                                                        is_annotated=True,
+                                                                        annotation_time = timezone.now()) 
+                                                                    
+                        annotation_protein.save()
 
             return redirect(home)
         else:

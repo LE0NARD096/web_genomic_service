@@ -76,10 +76,13 @@ class Upload_data(forms.Form):
     sequence = forms.FileField(
         help_text="Upload a fasta file",
         allow_empty_file=False,
-        widget=forms.ClearableFileInput(attrs={'accept': '.fa'})
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'placeholder': 'Upload a fasta file', 'accept': '.fa'})
     )
-    output_type = forms.ChoiceField(label='Upload in', choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')])
-    annotated = forms.BooleanField(label='Annotated sequence', required=False)
+    output_type = forms.ChoiceField(label='Upload in', 
+                                    choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')],
+                                    widget=forms.Select(attrs={'class':'regDropDown'}))
+    annotated = forms.BooleanField(required=False,
+                                   widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
 
 
 
