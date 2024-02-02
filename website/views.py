@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect, get_object_or_404
+from django.shortcuts import render,redirect
 from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein
 from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein, GenomeAnnotate, SequenceGenome
 from Bio import SeqIO
@@ -7,10 +7,10 @@ from io import StringIO
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import HttpResponse
-from Bio.SeqFeature import SeqFeature, FeatureLocation, SimpleLocation
+from Bio.SeqFeature import SeqFeature, FeatureLocation
 from django.urls import reverse
 import re
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from .forms import UserRegistrationForm
@@ -19,6 +19,8 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 import plotly.graph_objects as go
+from django.core.mail import send_mail
+from django.conf import settings
 
 def home(request):
     return render(request, 'home.html')
@@ -225,12 +227,22 @@ def upload(request):
             username_id = request.user.id
 
             if type == 'genome':
-                record = SeqIO.parse(file_stream, 'fasta')
-                genome = next(record, None)
+                record = list(SeqIO.parse(file_stream, 'fasta'))
                 
+                if len(record) > 1 or len(record) == 0:
+                    error_message = 'You have ' + str(len(record)) + ' genomes instead of exactly one'
+                    return render(request, 'upload.html', {'form': form, 'error_message': error_message})
+                
+                genome = record[0]
                 sequence = genome.seq
+
                 description = genome.description.split(':')
                 chromosome = description[2]
+
+                if not sequence:
+                        error_message = 'The genome '+ chromosome + ' does not contain a sequence'
+                        return render(request, 'upload.html', {'form': form, 'error_message': error_message})
+
                 start = description[4]
                 end = description[5]
                     
@@ -272,6 +284,11 @@ def upload(request):
                 for record in SeqIO.parse(file_stream, 'fasta'):
                     a_n = record.id
                     sequence = record.seq
+
+                    if not sequence:
+                        error_message = 'The protein '+ a_n + ' does not contain a sequence'
+                        return render(request, 'upload.html', {'form': form, 'error_message': error_message})
+
                     type = record.description.split()[1].lower()
                     description = re.split(r'[: ]', record.description)
                     start = description[5]
@@ -367,15 +384,13 @@ def validator_view(request):
 @login_required(login_url="/login")
 def assigned_annotators(request):
     if request.method == 'POST':
-        print(request.POST)
+   
         anno_id_protein = request.POST.getlist('annotation_id_protein')
         anno_id_genome = request.POST.getlist('annotation_id_genome')
 
         annotator_protein = request.POST.getlist('annotator_protein')
         annotator_genome = request.POST.getlist('annotator_genome')
         
-        print(anno_id_genome)
-
         for i in range(len(anno_id_protein)):
             new_annotation_protein = AnnotationProtein.objects.create(
                 annotator_id=annotator_protein[i],
@@ -389,7 +404,7 @@ def assigned_annotators(request):
                 genome_id=anno_id_genome[i]
             )
             new_annotation_genome.save()
-    
+
         return render(request, 'Validator/validate_annotators.html')
 
     return redirect('home')

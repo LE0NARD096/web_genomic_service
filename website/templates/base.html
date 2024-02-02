@@ -31,13 +31,13 @@
 
                             {% if request.user.role == "validator" or request.user.is_superuser %}
                             <li class="nav-item">
-                                <a class="nav-link" href="/validator_view">Validator dashboard</a>
+                                <a class="nav-link" href="/validator_view">Validator dashboard<span class="badge badge-light">{{ notifications_validator }}</span> </a>
                             </li>
                             {% endif %}
 
                             {% if request.user.role == "annotator" or request.user.is_superuser %}
                             <li class="nav-item">
-                                <a class="nav-link" href="/annotator_dashboard">Annotator dashboard</a>
+                                <a class="nav-link" href="/annotator_dashboard">Annotator dashboard<span class="badge badge-light">{{ notifications_annotator }}</span> </a>
                             </li>
                             {% endif %}
                             
