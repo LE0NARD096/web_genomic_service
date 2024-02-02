@@ -4,3 +4,4 @@ source .venv/bin/activate
 pip install django
 pip install biopython
 pip install loader
+pip install plotly
