@@ -11,7 +11,7 @@ from django.urls import reverse
 
 
 class GenomeSearchForm(forms.Form):
-    sequence = forms.CharField(label='Sequence query', required=True,widget=forms.Textarea)
+    sequence = forms.CharField(label='Sequence:', required=True,widget=forms.Textarea)
     species =forms.CharField(label='Species', required=False)
     chromosome = forms.CharField(label='Chromosome', required=False)
     transcript = forms.CharField(label='Transcript', required=False)
@@ -66,10 +66,15 @@ class SequenceGenome(forms.ModelForm):
 
 
 class DownloadTextForm(forms.Form):
-    StartPosition = forms.IntegerField(label='Start', required=False)
-    EndPosition = forms.IntegerField(label='End', required=False)
-    species = forms.CharField(label='Species', required=False)
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
+    start_position = forms.IntegerField(label='Start', required=False)
+    end_position = forms.IntegerField(label='End', required=False)
+    chromosome = forms.CharField(label='Chromosome', required=False)
+    species = forms.CharField(label='Species', required=False)
+    ##
+    gene = forms.CharField(label='Gene', required=False)
+    transcript = forms.CharField(label='Transcript', required=False)
+    function = forms.CharField(label='Function', required=False)
 
 
 class Upload_data(forms.Form):

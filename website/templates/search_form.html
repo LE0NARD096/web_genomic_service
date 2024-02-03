@@ -2,10 +2,34 @@
 {% block title %}Home page{% endblock %}
 {% block content %}
 
-<form method="post" action="{% url 'search_results' %}" id="searchForm">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Rechercher</button>
-</form>
+<div style="display: flex; justify-content: center; align-items: center; height: 70vh;">
+    <form method="post" action="{% url 'search_results'  %}" style="text-align: left;">
+        {% csrf_token %}
+        
+        <!-- Output Type -->
+        {{ form.output_type.label_tag }}
+        {{ form.output_type }}<br>
+        
+        <!-- Genome Fields -->
+        <br>
+        {{ form.sequence.label_tag }}<br> 
+        {{ form.sequence }}<br>
+        {{ form.chromosome.label_tag }}<br> 
+        {{ form.chromosome }}<br>
+        {{ form.species.label_tag }}<br>
+        {{ form.species }}<br>
+
+       
+        {{ form.gene.label_tag }} <br>
+        {{ form.gene }}<br>
+        {{ form.transcript.label_tag }} <br>
+        {{ form.transcript }}<br>
+        {{ form.function.label_tag }} <br>
+        {{ form.function }}
+ 
+        <button type="submit">Search</button>
+    </form>
+</div>
+
 
 {% endblock %}

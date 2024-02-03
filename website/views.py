@@ -21,64 +21,11 @@ from django.http import JsonResponse
 import plotly.graph_objects as go
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import StreamingHttpResponse
+import time
 
 def home(request):
     return render(request, 'home.html')
-
-def text_extraction(request):
-    if request.method == 'POST':
-        form = DownloadTextForm(request.POST)
-        if form.is_valid():
-            startposition = form.cleaned_data['StartPosition']
-            endposition = form.cleaned_data['EndPosition']
-            species_query = form.cleaned_data['species']
-            output_type = form.cleaned_data['output_type']
-
-            if output_type == 'genome':
-                results = Genome.objects.filter(species__contains=species_query,type = 'genome')
-            else:
-                results = Genome.objects.filter(species__contains=species_query, type__in=['pep', 'cds'])
-        
-            lines = []
-            flag_None = False
-
-            if startposition == None:
-                startposition = 0
-            
-            if endposition == None:
-                flag_None = True
-            
-            if not results.exists():
-                lines.append(f'No results')
-                
-            else:
-                for type_sequence in results:
-                    my_sequence = Seq(type_sequence.sequence)
-
-                    if flag_None == True:
-                        endposition = len(my_sequence)
-                
-
-                    print(startposition,endposition)
-                    if type_sequence.type == 'pep':
-                        f = SeqFeature(FeatureLocation(startposition, endposition), type="domain")
-                        if f:
-                            extraction = f.extract(my_sequence)
-                            lines.append(f'>{type_sequence.description}\n{extraction}\n')
-                    else :
-                        f = SeqFeature(FeatureLocation(startposition, endposition), type="CDS")
-                        if f:
-                            extraction = f.extract(my_sequence)
-                            lines.append(f'>{type_sequence.description}\n{extraction}\n')
-
-            response = HttpResponse(content_type='text/plain')
-            response['Content-Disposition'] = f'attachment; filename= {species_query}_{output_type}_query.txt'
-            response.writelines(lines)
-            return response
-    else:
-        form = DownloadTextForm()
-
-    return render(request, 'text_extraction.html', {'form': form})
 
 
 def register_view(request):
@@ -279,7 +226,8 @@ def upload(request):
                                                                     is_annotated=True,
                                                                     annotation_time = timezone.now())
                     annotations.save()
-
+                return redirect(home)
+            
             else :
                 for record in SeqIO.parse(file_stream, 'fasta'):
                     a_n = record.id
@@ -346,7 +294,7 @@ def upload(request):
                                                                     
                         annotation_protein.save()
 
-            return redirect(home)
+                return redirect(home)
         else:
             return render(request,'upload.html',{'form':form})
 
@@ -497,6 +445,95 @@ def save_annotation(request):
                 return render(request,'Annotator/Annotate_sequences.html',{'form': form_annotate , 'form2': form_sequence})
 
     return render(request,'Annotator/Annotate_sequences.html',{'form': form_annotate , 'form2': form_sequence})
+
+def text_extraction(request):
+    if request.method == 'POST':
+        form = DownloadTextForm(request.POST)
+        if form.is_valid():
+            startposition = form.cleaned_data['start_position']
+            endposition = form.cleaned_data['end_position']
+            chromosome = form.cleaned_data['chromosome']
+            species_query = form.cleaned_data['species']
+            output_type = form.cleaned_data['output_type']
+
+            gene = form.cleaned_data['gene']
+            transcript = form.cleaned_data['transcript']
+            function = form.cleaned_data['function']
+
+
+            if output_type == 'genome':
+                results = AnnotationGenome.objects.select_related('genome').filter(Q(genome__is_validated = True) &
+                                                                                   (Q(species__contains=species_query) &
+                                                                                   Q(genome__chromosome__startswith=chromosome)))
+            else:
+                results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
+                                                                            Q(geneprotein__is_validated=True) &
+                                                                            Q(gene__startswith=gene)&
+                                                                            Q(transcript__startswith=transcript) &
+                                                                            Q(description__contains=function) &
+                                                                            (Q(geneprotein__genome__chromosome__startswith=chromosome) &
+                                                                            Q(geneprotein__genome__annotationgenome__isnull=False) & 
+                                                                            Q(geneprotein__genome__annotationgenome__species__contains=species_query))
+                                                                        )
+        
+            lines = []
+            flag_None = False
+
+            if startposition is None:
+                startposition = 0
+
+            if endposition is None:
+                flag_None = True
+            
+            species = 0
+
+            if not results.exists():
+                lines.append(f'No results') 
+
+            elif output_type == "genome":
+                for type_sequence in results:
+                    species += 1
+
+                    my_sequence = Seq(type_sequence.genome.sequence)
+
+                    if flag_None:
+                        endposition = len(my_sequence)
+                
+                    print(startposition, endposition)
+
+                    f = SeqFeature(FeatureLocation(startposition, endposition), type="CDS")
+                    if f:
+                        extraction = f.extract(my_sequence)
+                        lines.append(f'>{type_sequence.species};{type_sequence.genome.chromosome};{startposition};{endposition}\n')
+                        
+                        for i in range(0, len(extraction), 70):
+                            lines.append(f'{extraction[i:i+70]}\n')
+            else:
+                for type_sequence in results:
+
+                    species += 1
+
+                    my_sequence = Seq(type_sequence.geneprotein.sequence)
+                    these_species = type_sequence.geneprotein.genome.annotationgenome.species
+                    this_gene = type_sequence.gene
+                    this_function = type_sequence.description
+                    this_transcript = type_sequence.transcript
+
+                    lines.append(f'>{these_species};{type_sequence.geneprotein.type};{this_gene};{this_transcript};{this_function}\n')
+                            
+                    for i in range(0, len(my_sequence), 70):
+                                lines.append(f'{my_sequence[i:i+70]}\n')
+
+                  
+            response = StreamingHttpResponse((line for line in lines), content_type='text/plain')
+            response['Content-Disposition'] = f'attachment; filename={species}_{output_type}_found.txt'
+            return response
+    else:
+        form = DownloadTextForm()
+
+    return render(request, 'text_extraction.html', {'form': form})
+
+
 
 
 def visualizza_geni_genoma(genoma):
