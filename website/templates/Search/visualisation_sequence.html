@@ -1,14 +1,9 @@
-{% extends "base.html" %}
-{% block title %}Home page{% endblock %}
-{% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/search.css' %}">
 
 
 {% if genome_id %}
             <p class="overflow-wrap overflow-wrap--break-word">{{ genome_id.sequence }}</p>
-
 {% else %}
     <p>Aucun résultat trouvé.</p>
 {% endif %}
-{% endblock %}

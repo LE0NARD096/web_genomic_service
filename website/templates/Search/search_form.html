@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Home page{% endblock %}
+{% block content %}
+
+<script>
+    function toggleFields() {
+        var outputType = document.getElementById("id_output_type").value;
+        var geneProteinFields = ["geneProteinFields"];
+
+        if (outputType === "genome") {
+            hideFields(geneProteinFields);
+        } else if (outputType === "gene_protein") {
+            showFields(geneProteinFields);
+        }
+    }
+
+    function showFields(fields) {
+        for (var i = 0; i < fields.length; i++) {
+            document.getElementById(fields[i]).style.display = "block";
+        }
+    }
+
+    function hideFields(fields) {
+        for (var i = 0; i < fields.length; i++) {
+            document.getElementById(fields[i]).style.display = "none";
+        }
+    }
+</script>
+
+<div style="display: flex; justify-content: center; align-items: center; height: 90vh;">
+    <form method="post" action="{% url 'search_results'  %}" style="text-align: left;">
+        {% csrf_token %}
+        
+        <!-- Output Type -->
+        {{ form.output_type.label_tag }}
+        {{ form.output_type }}<br>
+        
+        <!-- Genome Fields -->
+        <br>
+        {{ form.sequence.label_tag }}<br> 
+        {{ form.sequence }}<br>
+        {{ form.chromosome.label_tag }}<br> 
+        {{ form.chromosome }}<br>
+        {{ form.species.label_tag }}<br>
+        {{ form.species }}<br>
+
+        <!-- Protein Fields -->
+        <div id="geneProteinFields">
+            {{ form.gene.label_tag }} <br>
+            {{ form.gene }}<br>
+            {{ form.transcript.label_tag }} <br>
+            {{ form.transcript }}<br>
+            {{ form.function.label_tag }}<br>
+            {{ form.function }}<br>
+        </div>
+        <br>
+        <button type="submit">Search</button>
+    </form>
+
+<script>
+    toggleFields();
+    document.getElementById("id_output_type").addEventListener("change", toggleFields);
+</script>
+
+</div>
+{% endblock %}
