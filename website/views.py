@@ -1,28 +1,24 @@
-from django.shortcuts import render,redirect
 from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein
-from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein, GenomeAnnotate, SequenceGenome
+from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein, GenomeAnnotate, SequenceGenome, UserRegistrationForm
+
 from Bio import SeqIO
 from Bio.Seq import Seq
-from io import StringIO
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from django.http import HttpResponse
 from Bio.SeqFeature import SeqFeature, FeatureLocation
-from django.urls import reverse
-import re
+
+from io import StringIO
+
+from django.shortcuts import render, redirect, redirect
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-from .forms import UserRegistrationForm
+from django.contrib import messages
+
 from django.utils import timezone
 from django.db.models import Q
-from django.template.loader import render_to_string
-from django.http import JsonResponse
-import plotly.graph_objects as go
-from django.core.mail import send_mail
-from django.conf import settings
 from django.http import StreamingHttpResponse
-import time
+
+import re
+import plotly.graph_objects as go
 
 def home(request):
     return render(request, 'home.html')
@@ -88,63 +84,57 @@ def search_results(request):
 
             if output_type == 'genome':
 
-                results = Genome.objects.filter(
-                                            Q(is_validated=True) &
-                                            Q(chromosome__startswith=chromosome) &
-                                            Q(annotationgenome__species__contains=species))
+                results = AnnotationGenome.objects.select_related('genome').filter(
+                                                                            Q(genome__is_validated=True) &
+                                                                            Q(genome__chromosome__startswith=chromosome) &
+                                                                            Q(species__contains=species))
             
             else:
-                 gene = form.cleaned_data['gene']
-                 transcript = form.cleaned_data['transcript']
+                gene = form.cleaned_data['gene']
+                transcript = form.cleaned_data['transcript']
+                function = form.cleaned_data['function']
                  
-                 if validate(sequence_query,'dna'):
-                    results = GeneProtein.objects.filter(
-                            Q(is_validated=True) &
-                            Q(type='cds') &
-                            # Q(annotationprotein__gene__contains=gene) &
-                            # Q(annotationprotein__transcript__contains=transcript) &
-                            Q(genome__chromosome__startswith=chromosome) &
-                            Q(genome__annotationgenome__species__contains=species)
-                            )
-
-                 else:
-                     results = GeneProtein.objects.filter(
-                            Q(is_validated=True) &
-                            Q(type='pep') &
-                            # Q(annotationprotein__gene__contains=gene) &
-                            # Q(annotationprotein__transcript__contains=transcript) &
-                            Q(genome__chromosome__startswith=chromosome) &
-                            Q(genome__annotationgenome__species__contains=species)
-                            )
-
+                if validate(sequence_query,'dna'):
+                   type_sequence = 'cds'        
+                else:
+                    type_sequence = 'pep'
+                
+                results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
+                                    Q(geneprotein__is_validated=True) &
+                                    Q(geneprotein__type=type_sequence) &
+                                    Q(gene__startswith=gene) &
+                                    Q(description__contains=function) &
+                                    Q(transcript__startswith=transcript) &
+                                    Q(geneprotein__genome__chromosome__startswith=chromosome) &
+                                    Q(geneprotein__genome__annotationgenome__species__contains=species)
+                                    )       
             
             for DNAsequence in results:
-                c += 1 
-                print(DNAsequence.accession_number)
-                my_dna = Seq(DNAsequence.sequence)
-               
-                if my_dna.count(sequence_query) > 0:
-                    
-                    if output_type == 'genome':
+                if output_type == 'genome':
+                    my_dna = Seq(DNAsequence.genome.sequence)
+                    if my_dna.count(sequence_query) > 0:
                         result_dic = {
-                            'type': 'genome',
-                            'chromosome': DNAsequence.chromosome,
-                            'id': DNAsequence.id,
-                            }
-                    else:
+                                        'type': 'genome',
+                                        'chromosome': DNAsequence.genome.chromosome,
+                                        'id': DNAsequence.genome.id,
+                                    }
+                else:
+                    my_protein = Seq(DNAsequence.geneprotein.sequence)
+                    if my_protein.count(sequence_query):
                         result_dic = {
-                            'type': DNAsequence.type,
-                            'chromosome': DNAsequence.accession_number,
-                            'id': DNAsequence.id,
-                            }
-                    final_result.append(result_dic)
-                    print(final_result)
+                                        'type': type_sequence,
+                                        'chromosome': DNAsequence.geneprotein.accession_number,
+                                        'id': DNAsequence.geneprotein.id,
+                                    }
+                
+                final_result.append(result_dic)
+                print(final_result)
             
-            return render(request, 'search_results.html', {'results': final_result})
+            return render(request, 'Search/search_results.html', {'results': final_result})
+        else:
+            return render(request, 'Search/search_form.html', {'form': form})
     else:
-        form = GenomeSearchForm()
-
-    return render(request, 'search_form.html', {'form': form})
+        return render(request, 'Search/search_form.html', {'form': GenomeSearchForm})
 
 def validate(seq, alphabet='dna'):
     
@@ -174,15 +164,14 @@ def upload(request):
             username_id = request.user.id
 
             if type == 'genome':
-                record = list(SeqIO.parse(file_stream, 'fasta'))
                 
-                if len(record) > 1 or len(record) == 0:
-                    error_message = 'You have ' + str(len(record)) + ' genomes instead of exactly one'
+                try:
+                    genome = SeqIO.read(file_stream, 'fasta')
+                except:
+                    error_message = 'Genome expects exactly one fasta sequence'
                     return render(request, 'upload.html', {'form': form, 'error_message': error_message})
-                
-                genome = record[0]
-                sequence = genome.seq
 
+                sequence = genome.seq
                 description = genome.description.split(':')
                 chromosome = description[2]
 
@@ -199,9 +188,8 @@ def upload(request):
                                                         'start':start,
                                                         'end':end,
                                                         'upload_time':timezone.now()
-                                                            }
-                                                    )
-
+                                                            })
+                                                
                 # We populate the "artificial" genome created by the proteins
                 if not genome[1] and genome[0].sequence is None:
                     genome[0].sequence=sequence
@@ -271,13 +259,18 @@ def upload(request):
 
 
                     if annotated and created_protein:
-
+                        print(description)
                         gene=description[9]
                         transcript=a_n
                         gene_biotype=description[12]
                         gene_symbol=description[15]
                         transcript_biotype=description[14]
-                        description_protein=' '.join(description[18:21])
+
+                        if type == "cds":
+                            description_protein=' '.join(description[18:21])
+                        else:
+                            description_protein=' '.join(description[19:21])
+
                         id_user = Profile.objects.get(id=username_id)
 
                         annotation_protein = AnnotationProtein.objects.create(
@@ -306,7 +299,7 @@ def visualisation_sequence(request,type,id):
         genome = Genome.objects.get(id=id)
     else:
         genome = GeneProtein.objects.get(id=id,type=type)
-    return render(request, 'visualisation_sequence.html', {'genome_id': genome})
+    return render(request, 'Search/visualisation_sequence.html', {'genome_id': genome})
 
 
 @login_required(login_url="/login")

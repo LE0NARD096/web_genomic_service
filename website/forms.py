@@ -11,12 +11,14 @@ from django.urls import reverse
 
 
 class GenomeSearchForm(forms.Form):
+    output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
     sequence = forms.CharField(label='Sequence:', required=True,widget=forms.Textarea)
     species =forms.CharField(label='Species', required=False)
     chromosome = forms.CharField(label='Chromosome', required=False)
+    ##
     transcript = forms.CharField(label='Transcript', required=False)
     gene = forms.CharField(label='Gene', required=False)
-    output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
+    function = forms.CharField(label='function',required=False)
     
     def clean(self):
         """
