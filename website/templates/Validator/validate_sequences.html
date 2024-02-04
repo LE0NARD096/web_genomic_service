@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Validate Sequences{% endblock %}
+{% block content %}
+{% load static %}
+
+<div class="form-container">
+    <form method="post" action="{% url 'validated' %}" class="annotation-form">
+        {% csrf_token %}
+        <div class="form-header">
+            <h2>Annotation Form</h2>
+        </div>
+        <div class="form-field">
+            {{ form.as_p }}
+        </div>
+        
+        <div class="form-header">
+            <h2>Sequence Form</h2>
+        </div>
+        <div class="form-field">
+            {{ form2.as_p }}
+        </div>
+
+        <button type="submit" class="submit-button">Validate</button>
+    </form>
+</div>
+
+{% endblock %}

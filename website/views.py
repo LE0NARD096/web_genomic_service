@@ -21,8 +21,12 @@ import re
 import plotly.graph_objects as go
 
 def home(request):
-    return render(request, 'home.html')
 
+    status_genome = AnnotationGenome.objects.select_related("genome").filter(genome__sequence__isnull=False).order_by("annotation_time")[:10]
+    status_proteins = AnnotationProtein.objects.select_related("geneprotein").order_by("annotation_time")[:64]
+
+    print(status_genome)
+    return render(request, 'home.html',{'status_genome':status_genome,'status_protein':status_proteins})
 
 def register_view(request):
     if request.method == 'POST':
@@ -323,6 +327,36 @@ def validator_view(request):
     return render(request, 'Validator/validator_view.html', context)
 
 @login_required(login_url="/login")
+def validate_include_database(request):
+    id_sequence = request.session.get('id_sequence')
+    type_sequence = request.session.get('type')
+
+    if request.method == 'POST':
+        if type_sequence == "genome":
+            form_annotate = GenomeAnnotate(request.POST)
+            form_sequence = SequenceGenome(request.POST)
+        else:
+            form_annotate = ProteinAnnotate(request.POST)
+            form_sequence = SequenceProtein(request.POST)
+
+        if form_annotate.is_valid() and form_sequence.is_valid():
+                if type_sequence == "genome":
+                    validate_sequence = Genome.objects.get(pk=id_sequence)
+                else:
+                    validate_sequence = GeneProtein.objects.get(pk=id_sequence)
+            
+                validate_sequence.is_validated = True
+                validate_sequence.save()
+
+                return render(request, 'status_sequence_modified.html')
+
+        else:
+                return render(request,'Validator/validate_sequences.html',{'form': form_annotate , 'form2': form_sequence})
+
+    return render(request,'Validator/validate_sequences.html',{'form': form_annotate , 'form2': form_sequence})
+        
+
+@login_required(login_url="/login")
 def assigned_annotators(request):
     if request.method == 'POST':
    
@@ -368,9 +402,10 @@ def annotator_view(request):
     return render(request, 'Annotator/Annotator_dashboard.html', context)
 
 @login_required(login_url="/login")
-def annotator_modify(request,type_of_sequence,id):
+def sequence_view(request,type_of_sequence,id):
     request.session['type'] = type_of_sequence
     if type_of_sequence == "genome":
+        print(id)
         genome_annotate_instance = AnnotationGenome.objects.get(pk=id)
         sequence_genome_instance = Genome.objects.get(pk=genome_annotate_instance.genome.id)
         
@@ -389,9 +424,12 @@ def annotator_modify(request,type_of_sequence,id):
 
         annotate_form  = ProteinAnnotate(instance=protein_annotate_instance)
         sequence_form = SequenceProtein(instance=sequence_protein_instance)
-
-    return render(request,'Annotator/Annotate_sequences.html',{'form': annotate_form , 'form2': sequence_form})
-
+    
+    if "annotation" in request.path:
+        return render(request,'Annotator/Annotate_sequences.html',{'form': annotate_form , 'form2': sequence_form})
+    else:
+        print('hey')
+        return render(request,'Validator/validate_sequences.html',{'form': annotate_form , 'form2': sequence_form})
 
 def save_annotation(request):
     id_annotate = request.session.get('id_annotate')
@@ -432,7 +470,7 @@ def save_annotation(request):
                 
                 update_sequence.save()
 
-                return render(request, 'Annotator/Annotation_validation.html')
+                return render(request, 'status_sequence_modified.html')
 
         else:
                 return render(request,'Annotator/Annotate_sequences.html',{'form': form_annotate , 'form2': form_sequence})

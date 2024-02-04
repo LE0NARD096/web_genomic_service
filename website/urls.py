@@ -13,6 +13,8 @@ urlpatterns = [
     path('validator_view/', views.validator_view,name='validator_view'),
     path('validate_annotators/',views.assigned_annotators,name='validate_annotators'),
     path('annotator_dashboard/', views.annotator_view, name='annotator_dashboard'),
-    path('annotation_<str:type_of_sequence>/<int:id>/', views.annotator_modify, name='annotation'),
-    path('annotated/',views.save_annotation,name='annotated')
+    path('annotation_<str:type_of_sequence>/<int:id>/', views.sequence_view, name='annotation'),
+    path('validation_<str:type_of_sequence>/<int:id>/', views.sequence_view, name='validation'),
+    path('annotated/',views.save_annotation,name='annotated'),
+    path('validated/',views.validate_include_database,name='validated')
 ]
