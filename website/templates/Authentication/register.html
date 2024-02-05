@@ -6,45 +6,10 @@
     <p>{{ message }}</p>
 {% endif %}
 
-<style>
-    /* Add some space between form fields */
-    form {
-        margin-bottom: 20px;
-    }
-
-    /* Optionally, add more specific styling for individual form fields */
-    form input {
-        margin-bottom: 10px;
-    }
-</style>
-
 <form method="post" action="{% url 'register' %}">
     {% csrf_token %}
-    {{ form.username.label_tag }}
-    {{ form.username }}
-    <br>
-    {{ form.email.label_tag }}
-    {{ form.email }}
-    <br>
-    {{ form.first_name.label_tag }}
-    {{ form.first_name }}
-    <br>
-    {{ form.last_name.label_tag }}
-    {{ form.last_name }}
-    <br>
-    {{ form.phone_number.label_tag }}
-    {{ form.phone_number }}
-    <br>
-    {{ form.role.label_tag }}
-    {{ form.role }}
-    <br>
-    {{ form.password1.label_tag }}
-    {{ form.password1 }}
-    <br>
-    {{ form.password2.label_tag }}
-    {{ form.password2 }}
-    <br>
-    <button type="submit">Register</button>
+    {{ form.as_p }}
+    <button type="submit">register</button>
 </form>
 
 {% endblock %}
