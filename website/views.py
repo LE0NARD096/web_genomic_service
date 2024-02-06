@@ -588,7 +588,7 @@ def text_extraction(request):
 
 def visualizza_geni_genoma(genoma):
     # Recupera tutti i geni annotati sul genoma specificato
-    geni_annotati = GeneProtein.objects.filter(annotated=False, genome=genoma)
+    geni_annotati = GeneProtein.objects.filter(is_validated=False, genome=genoma)
 
     # Crea una lista di tracce per i geni
     tracce = []
