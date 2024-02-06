@@ -4,6 +4,9 @@ from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnota
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio.Blast import NCBIWWW
+from Bio.Blast import NCBIXML
+from Bio import SearchIO
 
 from io import StringIO
 
@@ -607,3 +610,25 @@ def visualizzazione(request):
     grafico_html = visualizza_geni_genoma(genome_instance)
 
     return render(request, 'visualization.html', {'grafico_html': grafico_html})
+
+def blast_search(request):
+    # Replace 'your_sequence' with your actual DNA, RNA, or protein sequence
+    ## récupérer la séquence mise dans query 
+    # if request.method == 'POST':
+    #     form = GenomeSearchForm(request.POST)
+    #     if form.is_valid():
+    #         if form.cleaned_data['database'] == 'NCBI_Blast':
+    #             sequence_query = form.cleaned_data['sequence']
+    # else:
+    #     form = GenomeSearchForm()
+        
+    sequence = "AAAAGTGTACGGATTCTGGAAGCTGAATGCTGTGCAGATCATATCCATATGCTTGTGGAG"
+    # Specify the BLAST program (e.g., 'blastn' for nucleotides, 'blastp' for proteins)
+    blast_program = "blastn" ## faire des conditions selon ce que l'utilisateur a mis comme seq (peptide ou ADN)
+    try:
+        result_handle = NCBIWWW.qblast(program=blast_program, database="nt", sequence=sequence, descriptions=50, hitlist_size=25)
+        blast_results = SearchIO.read(result_handle, "blast-xml")
+        context = {'blast_results': blast_results}
+        return render(request, 'blast_results.html', context)
+    except Exception as e:
+        return "An error occurred"

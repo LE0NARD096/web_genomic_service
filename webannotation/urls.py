@@ -17,13 +17,14 @@ Including another URLconf
 from django.urls import path, include
 from website import views
 from django.contrib import admin
-from website.views import visualizzazione
+from website.views import visualizzazione, blast_search
 
 urlpatterns = [
     path('', views.home, name='home'),  # Add this line for the home page
     path("admin/", admin.site.urls),
     path('', include('website.urls')),
-    path('visualization/', visualizzazione, name='visualizzazione')
+    path('visualization/', visualizzazione, name='visualizzazione'),
+    path('blast_results/', blast_search, name='blast_results'),
     # ... other url patterns ...
 ]
 
