@@ -2,14 +2,10 @@ import os
 from django.core.management.base import BaseCommand, CommandError
 from website.models import GeneProtein, Genome, AnnotationGenome, AnnotationProtein
 from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqFeature import SeqFeature, FeatureLocation
-from Bio.Blast import NCBIWWW
-from Bio.Blast import NCBIXML
-from Bio import SearchIO
 import re
 from django.utils import timezone
 import warnings
+from django.db import transaction
 
 class Command(BaseCommand):
     help = 'Command to save files in the database'
@@ -18,6 +14,7 @@ class Command(BaseCommand):
         # Define command-line arguments
         parser.add_argument('folder_path', type=str, help='Folder path containing files to be saved in the database')
         parser.add_argument('--annotated', action='store_true' , help='The sequences are all annotated or not')
+    
 
     def handle(self, *args, **options):
         folder_path = options['folder_path']
@@ -29,17 +26,111 @@ class Command(BaseCommand):
                     files_fasta.append(file_fasta)
 
         
-        pattern = re.compile(r'^([a-zA-Z0-9_]+)_(cds|pep)?')
+        pattern = re.compile(r'([a-zA-Z0-9_]+)_(cds|pep|[a-z0-9]*)\.fa$')
 
         for species_and_type in files_fasta:
             match = pattern.match(species_and_type)
-            print(match.group(1))
-            
-            if match.group(2) == 'cds' or match.group(2) == 'pep':
-                 print('protein',species_and_type)
-            
-            elif match.group(1) and match.group(2) == None:
-                print('genome',match.group(1))
+            print(species_and_type)
+
+            if match.group(1) and (match.group(2) == 'cds' or match.group(2) == 'pep'):
+                sequence_proteins = []
+                annotation_proteins = []
+                counter_for_bulk = 0
+                base = 900
+
+                with transaction.atomic():
+                    c = list(SeqIO.parse(os.path.join(folder_path, species_and_type), "fasta"))
+                    for record in SeqIO.parse(os.path.join(folder_path, species_and_type), 'fasta'):
+                        
+                            a_n = record.id
+                            sequence = record.seq
+
+                            if not sequence:
+                                warnings.warn(f"The protein {a_n} wasn't inserted into the database. Reason: No sequence", stacklevel=2)
+                                continue
+                
+
+                            type = record.description.split()[1].lower()
+                            description = re.split(r'[: ]', record.description)
+                            start = description[5]
+                            end = description[6]
+                            chromosome = description[3]
+                            validated_status = False
+
+
+                            genome, created = Genome.objects.get_or_create(chromosome=chromosome,
+                                                            defaults={
+                                                                'upload_time':timezone.now()
+                                                                    })
+
+                            if created and genome.sequence is None:
+                                print('error 1')
+                                genome.save()
+                            
+                            if annotated:
+                                validated_status = True
+                        
+                            geneprotein_instance = GeneProtein(
+                                                                                accession_number=a_n,
+                                                                                sequence=sequence,
+                                                                                type=type,
+                                                                                start=start,
+                                                                                end=end,
+                                                                                genome=genome,
+                                                                                is_validated = validated_status,
+                                                                                upload_time=timezone.now()
+                                                                                )
+                            
+                            sequence_proteins.append(geneprotein_instance)
+                            
+                            if annotated:
+                                gene=description[9]
+                                transcript=a_n
+                                gene_biotype=description[12]
+                                gene_symbol=description[15]
+                                transcript_biotype=description[14]
+
+                                if type == "cds":
+                                    description_protein=' '.join(description[18:21])
+                                else:
+                                    description_protein=' '.join(description[19:21])
+
+                                annotation_protein = AnnotationProtein(
+                                                                        gene=gene,
+                                                                        transcript=transcript,
+                                                                        gene_biotype=gene_biotype,
+                                                                        transcript_biotype=transcript_biotype,
+                                                                        gene_symbol=gene_symbol,
+                                                                        geneprotein=geneprotein_instance,
+                                                                        description=description_protein,
+                                                                        is_annotated=True,
+                                                                        annotation_time=timezone.now()
+                                                                    )
+
+                                annotation_proteins.append(annotation_protein)
+
+                            counter_for_bulk += 1
+
+                            if counter_for_bulk == base or counter_for_bulk == len(c):
+
+                                if base+900 >= len(c):
+                                    base = len(c)
+                                
+                                else:
+                                    base += 900
+
+                                if annotated:
+                                    GeneProtein.objects.bulk_create(sequence_proteins,batch_size=900)
+                                    AnnotationProtein.objects.bulk_create(annotation_proteins,batch_size=900)
+                                                
+                                else:
+                                    GeneProtein.objects.bulk_create(sequence_proteins, batch_size=900)
+                                
+                                sequence_proteins = []
+                                annotation_proteins = []
+                                    
+
+            elif match.group(1):
                 try:
                     genome = SeqIO.read(os.path.join(folder_path, species_and_type), 'fasta')
                 except:
@@ -86,6 +177,9 @@ class Command(BaseCommand):
                                                                     is_annotated=True,
                                                                     annotation_time = timezone.now())
                     annotations.save()
+            
+            else:
+                raise CommandError(f"The title of the fasta file {species_and_type} doesn't respect your_bacteria_species_cds or pep.fa")
 
             
         
