@@ -112,12 +112,8 @@ class Command(BaseCommand):
                             counter_for_bulk += 1
 
                             if counter_for_bulk == base or counter_for_bulk == len(c):
-
-                                if base+900 >= len(c):
-                                    base = len(c)
-                                
-                                else:
-                                    base += 900
+                                    
+                                base += 900
 
                                 if annotated:
                                     GeneProtein.objects.bulk_create(sequence_proteins,batch_size=900)
