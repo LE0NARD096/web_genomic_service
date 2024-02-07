@@ -17,14 +17,26 @@
       .status-column {
           width: 30%; /* Adjust the width as needed */
       }
+    body {
+        /* Set background image */
+        background-image: url('static/background.png');
+    }
 
+    .text-middle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold; /* Make text bold */
+        font-size: larger; /* Increase font size */
+    }
     
   </style>
 
 
   {% if request.user.is_authenticated %}
     <h1 class="centered">Welcome {{ request.user.username }} to BactAHub</h1>
-    <p class="centered">This is the home page of our application for annotating and analyzing bacterial genomes.</p>
+    <p class="centered">The home page of our application for annotating and analyzing bacterial genomes.</p>
 
     <div class="container">
       <h3 style="text-align: center;">Annotation Genome status</h3>
@@ -86,7 +98,10 @@
   
   {% else %}
     <h1 class="centered">Welcome to BactAHub</h1>
-    <p class="centered">This is the home page of our application for annotating and analyzing bacterial genomes.</p>
+    <p class="centered">The home page of our application for annotating and analyzing bacterial genomes.</p>
+    <div class="container">
+      <p class="text-middle centered">BactAHub allows for the annotation of bacterial genomes with an efficient visualization of gene localization. It facilitates the selective extraction of annotated data, provides access to sequence alignment tools via external APIs such as Blast, and encourages collaboration between annotators and validators to ensure the quality of generated information.</p>
+    </div>
   {% endif %}
  
 {% endblock %}
