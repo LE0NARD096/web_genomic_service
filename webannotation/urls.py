@@ -18,6 +18,9 @@ from django.urls import path, include
 from website import views
 from django.contrib import admin
 from website.views import visualizzazione, blast_search
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('', views.home, name='home'),  # Add this line for the home page
@@ -26,5 +29,5 @@ urlpatterns = [
     path('visualization/', visualizzazione, name='visualizzazione'),
     path('blast_results/', blast_search, name='blast_results'),
     # ... other url patterns ...
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

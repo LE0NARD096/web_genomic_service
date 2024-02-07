@@ -1,0 +1,31 @@
+/* styles.css */
+/* Add your custom styles here */
+
+/* Styling for form container */
+.form-container {
+    max-width: 500px;
+    margin: auto;
+}
+
+/* Styling for form header */
+.form-header {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+/* Styling for form fields */
+.form-field {
+    margin-bottom: 15px;
+}
+
+/* Styling for submit button */
+.submit-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}

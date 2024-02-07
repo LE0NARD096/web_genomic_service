@@ -1,0 +1,14 @@
+/* search.css */
+.overflow-wrap {
+    width: 1800px;
+    border: 1px solid #000;
+    padding: 5px;
+}
+
+.overflow-wrap--break-word {
+    overflow-wrap: break-word;
+}
+
+body{
+    background-color: whitesmoke;
+}
