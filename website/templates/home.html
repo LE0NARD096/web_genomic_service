@@ -38,30 +38,31 @@
     <h1 class="centered">Welcome {{ request.user.username }} to BactAHub</h1>
     <p class="centered">The home page of our application for annotating and analyzing bacterial genomes.</p>
 
-    <div class="container">
+    <div class="container-sm" style="max-width: 800px;">
       <h3 style="text-align: center;">Annotation Genome status</h3>
       <div class="row">
-          {% for i in status_genome %}
-              <div class="col-md-3 mb-1">
+          {% for anno_genome in status_genome %}
+              <div class="col-md-4 mb-1">
                   <div class="d-flex justify-content-between align-items-center border p-1 rounded">
-                      <div>{{ i.genome.chromosome }}</div>
-                      <div>
-                          {% if i.is_annotated == False %}
-                              {% if i.annotator|can_edit_annotation:request.user %}
-                                <a href="{% url 'annotation' 'genome' i.id %}" class="badge bg-danger">Annotate</a>
-                              {% else %}
-                                <span class="badge bg-danger">Pending annotation</span>
-                              {% endif %}
-                          {% elif i.genome.is_validated == False %}
-                              {% if request.user.role == "validator" or request.user.is_superuser %}
-                                <a href="{% url 'validation' 'genome' i.id %}" class="badge bg-warning">Validate</a>
-                              {% else %}
-                                <span class="badge bg-warning">Pending validation</span>
-                              {% endif %}
-                          {% else %}
-                              <span class="badge bg-success">In database</span>
+                      {% if anno_genome.is_annotated == False %}
+                          {% if anno_genome.annotator|can_edit_annotation:request.user %}
+                              <div>
+                                  {{ anno_genome.genome.chromosome }}
+                              </div>
+                              <div>
+                                  <a href="{% url 'annotation' 'genome' i.id %}" class="badge bg-danger">Annotate</a>
+                              </div>
                           {% endif %}
-                      </div>
+                      {% elif anno_genome.genome.is_validated == False %}
+                          {% if request.user.role == "validator" or request.user.is_superuser %}
+                              <div>
+                                  {{ anno_genome.genome.chromosome }}
+                              </div>
+                              <div>
+                              <a href="{% url 'validation' 'genome' anno_genome.id %}" class="badge bg-warning">Validate</a>
+                              </div>
+                          {% endif %}
+                      {% endif %}
                   </div>
               </div>
           {% endfor %}

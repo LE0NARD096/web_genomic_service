@@ -314,18 +314,27 @@ def visualisation_sequence(request,type,id):
 
 @login_required(login_url="/login")
 def validator_view(request):
-    unvalidated_genomes = Genome.objects.filter(is_validated=False, annotationgenome__isnull=True)
-    unvalidated_proteins = GeneProtein.objects.filter(is_validated=False,annotationprotein__isnull=True)
+
+
+    created_genomes = Genome.objects.filter(Q(is_validated=False) &
+                                            Q(annotationgenome__isnull=True)).defer('sequence')
+
+    created_proteins = GeneProtein.objects.filter(Q(is_validated=False) &
+                                                        Q(annotationprotein__isnull=True)).defer('sequence')
+    
+    unvalidated_genomes = AnnotationGenome.objects.select_related('genome').filter(genome__is_validated=False, is_annotated=True)
+                                           
+    unvalidated_proteins = AnnotationProtein.objects.select_related('geneprotein').filter(geneprotein__is_validated=False, is_annotated=True)
     annotators = None
 
 
-    if unvalidated_genomes != None or unvalidated_proteins != None:
+    if created_genomes != None or created_proteins != None:
         annotators = Profile.objects.filter(role='annotator')
     
-        
-
     context = {
         'annotators': annotators,
+        'created_genomes': created_genomes,
+        'created_proteins': created_proteins,
         'unvalidated_genomes': unvalidated_genomes,
         'unvalidated_proteins': unvalidated_proteins
     }
@@ -365,26 +374,30 @@ def validate_include_database(request):
 @login_required(login_url="/login")
 def assigned_annotators(request):
     if request.method == 'POST':
+
+        print(request.POST)
    
         anno_id_protein = request.POST.getlist('annotation_id_protein')
         anno_id_genome = request.POST.getlist('annotation_id_genome')
 
+
         annotator_protein = request.POST.getlist('annotator_protein')
         annotator_genome = request.POST.getlist('annotator_genome')
         
-        for i in range(len(anno_id_protein)):
-            new_annotation_protein = AnnotationProtein.objects.create(
-                annotator_id=annotator_protein[i],
-                geneprotein_id=anno_id_protein[i]
-            )
-            new_annotation_protein.save()
-
-        for i in range(len(anno_id_genome)):
-            new_annotation_genome = AnnotationGenome.objects.create(
-                annotator_id=annotator_genome[i],
-                genome_id=anno_id_genome[i]
-            )
-            new_annotation_genome.save()
+        if len(anno_id_protein) != 0:
+            for i in range(len(anno_id_protein)):
+                new_annotation_protein = AnnotationProtein.objects.create(
+                    annotator_id=annotator_protein[i],
+                    geneprotein_id=anno_id_protein[i]
+                )
+                new_annotation_protein.save()
+        if len(anno_id_genome) != 0:
+            for i in range(len(anno_id_genome)):
+                new_annotation_genome = AnnotationGenome.objects.create(
+                    annotator_id=annotator_genome[i],
+                    genome_id=anno_id_genome[i]
+                )
+                new_annotation_genome.save()
 
         return render(request, 'Validator/validate_annotators.html')
 
