@@ -143,7 +143,7 @@ class Command(BaseCommand):
                 start = description[4]
                 end = description[5]
                     
-                genome = Genome.objects.get_or_create(chromosome=chromosome,
+                genome, created = Genome.objects.get_or_create(chromosome=chromosome,
                                                     defaults={
                                                         'sequence':sequence,
                                                         'start':start,
@@ -152,14 +152,15 @@ class Command(BaseCommand):
                                                             })
                                                 
                 # We populate the "artificial" genome created by the proteins
-                if not genome[1] and genome[0].sequence is None:
-                    genome[0].sequence=sequence
-                    genome[0].start=start
-                    genome[0].end=end
-                    genome[0].save()
+                if not created and genome.sequence is None:
+                    genome.sequence=sequence
+                    genome.start=start
+                    genome.end=end
+                    genome.is_validated=True
+                    genome.save()
                 
-                elif genome[1]:
-                    genome[0].save()
+                elif created:
+                    genome.save()
                 
                 else:
                     warnings.warn(f'The genome in fasta file {species_and_type} is already in the database', stacklevel=2)
@@ -169,7 +170,7 @@ class Command(BaseCommand):
                     species = species = re.split(r'[_.]', species_and_type)[:-1]
                     species = " ".join(species)
                     annotations = AnnotationGenome.objects.create(species=species,
-                                                                    genome=genome[0],
+                                                                    genome=genome,
                                                                     is_annotated=True,
                                                                     annotation_time = timezone.now())
                     annotations.save()
