@@ -19,7 +19,6 @@ class GenomeSearchForm(forms.Form):
     transcript = forms.CharField(label='Transcript', required=False)
     gene = forms.CharField(label='Gene', required=False)
     function = forms.CharField(label='function',required=False)
-    database = forms.ChoiceField(label = 'Database', choices=[('Name_of_our_site', 'Name of our site'), ('NCBI_Blast','NCBI Blast')])
     
     def clean(self):
         """

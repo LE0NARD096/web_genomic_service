@@ -80,7 +80,9 @@ def logout_view(request):
 def search_results(request):
     if request.method == 'POST':
         form = GenomeSearchForm(request.POST)
+        
         if form.is_valid():
+            print("hey")
             sequence_query = form.cleaned_data['sequence']
             species = form.cleaned_data['species']
             chromosome = form.cleaned_data['chromosome']
@@ -114,7 +116,7 @@ def search_results(request):
                                     Q(transcript__startswith=transcript) &
                                     Q(geneprotein__genome__chromosome__startswith=chromosome) &
                                     Q(geneprotein__genome__annotationgenome__species__contains=species)
-                                    )       
+                                    ).only('geneprotein__type','geneprotein__accession_number','geneprotein__id','geneprotein__sequence','geneprotein__genome__id')       
             
             for DNAsequence in results:
                 if output_type == 'genome':
@@ -125,6 +127,7 @@ def search_results(request):
                                         'chromosome': DNAsequence.genome.chromosome,
                                         'id': DNAsequence.genome.id,
                                     }
+                        final_result.append(result_dic)
                 else:
                     my_protein = Seq(DNAsequence.geneprotein.sequence)
                     if my_protein.count(sequence_query):
@@ -134,8 +137,8 @@ def search_results(request):
                                         'id': DNAsequence.geneprotein.id,
                                     }
                 
-                final_result.append(result_dic)
-                print(final_result)
+                        final_result.append(result_dic)
+                print('ok')
             
             return render(request, 'Search/search_results.html', {'results': final_result})
         else:
