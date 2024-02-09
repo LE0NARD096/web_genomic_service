@@ -27,7 +27,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('website.urls')),
     path('visualization/', visualizzazione, name='visualizzazione'),
-    path('blast_results/', blast_search, name='blast_results'),
     # ... other url patterns ...
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

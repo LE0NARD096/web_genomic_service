@@ -87,60 +87,79 @@ def search_results(request):
             species = form.cleaned_data['species']
             chromosome = form.cleaned_data['chromosome']
             output_type = form.cleaned_data['output_type']
-                   
+            database = form.cleaned_data['database']
+
             c = 0
             final_result = []
 
-            if output_type == 'genome':
-
-                results = AnnotationGenome.objects.select_related('genome').filter(
-                                                                            Q(genome__is_validated=True) &
-                                                                            Q(genome__chromosome__startswith=chromosome) &
-                                                                            Q(species__contains=species))
-            
-            else:
-                gene = form.cleaned_data['gene']
-                transcript = form.cleaned_data['transcript']
-                function = form.cleaned_data['function']
-                 
-                if validate(sequence_query,'dna'):
-                   type_sequence = 'cds'        
-                else:
-                    type_sequence = 'pep'
-                
-                results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
-                                    Q(geneprotein__is_validated=True) &
-                                    Q(geneprotein__type=type_sequence) &
-                                    Q(gene__startswith=gene) &
-                                    Q(description__contains=function) &
-                                    Q(transcript__startswith=transcript) &
-                                    Q(geneprotein__genome__chromosome__startswith=chromosome) &
-                                    Q(geneprotein__genome__annotationgenome__species__contains=species)
-                                    ).only('geneprotein__type','geneprotein__accession_number','geneprotein__id','geneprotein__sequence','geneprotein__genome__id')       
-            
-            for DNAsequence in results:
+            if database == "BactaHub":
                 if output_type == 'genome':
-                    my_dna = Seq(DNAsequence.genome.sequence)
-                    if my_dna.count(sequence_query) > 0:
-                        result_dic = {
-                                        'type': 'genome',
-                                        'chromosome': DNAsequence.genome.chromosome,
-                                        'id': DNAsequence.genome.id,
-                                    }
-                        final_result.append(result_dic)
-                else:
-                    my_protein = Seq(DNAsequence.geneprotein.sequence)
-                    if my_protein.count(sequence_query):
-                        result_dic = {
-                                        'type': type_sequence,
-                                        'chromosome': DNAsequence.geneprotein.accession_number,
-                                        'id': DNAsequence.geneprotein.id,
-                                    }
+
+                    results = AnnotationGenome.objects.select_related('genome').filter(
+                                                                                Q(genome__is_validated=True) &
+                                                                                Q(genome__chromosome__startswith=chromosome) &
+                                                                                Q(species__contains=species))
                 
-                        final_result.append(result_dic)
-                print('ok')
+                else:
+                    gene = form.cleaned_data['gene']
+                    transcript = form.cleaned_data['transcript']
+                    function = form.cleaned_data['function']
+                 
+                    if validate(sequence_query,'dna'):
+                        type_sequence = 'cds'        
+                    else:
+                        type_sequence = 'pep'
+                
+                    results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
+                                        Q(geneprotein__is_validated=True) &
+                                        Q(geneprotein__type=type_sequence) &
+                                        Q(gene__startswith=gene) &
+                                        Q(description__contains=function) &
+                                        Q(transcript__startswith=transcript) &
+                                        Q(geneprotein__genome__chromosome__startswith=chromosome) &
+                                        Q(geneprotein__genome__annotationgenome__species__contains=species)
+                                        ).only('geneprotein__type','geneprotein__accession_number','geneprotein__id','geneprotein__sequence','geneprotein__genome__id')       
             
-            return render(request, 'Search/search_results.html', {'results': final_result})
+                for DNAsequence in results:
+                    if output_type == 'genome':
+                        my_dna = Seq(DNAsequence.genome.sequence)
+                        if my_dna.count(sequence_query) > 0:
+                            result_dic = {
+                                            'type': 'genome',
+                                            'chromosome': DNAsequence.genome.chromosome,
+                                            'id': DNAsequence.genome.id,
+                                        }
+                            final_result.append(result_dic)
+                    else:
+                        my_protein = Seq(DNAsequence.geneprotein.sequence)
+                        if my_protein.count(sequence_query):
+                            result_dic = {
+                                            'type': type_sequence,
+                                            'chromosome': DNAsequence.geneprotein.accession_number,
+                                            'id': DNAsequence.geneprotein.id,
+                                        }
+                    
+                            final_result.append(result_dic)
+                    print('ok')
+            
+                return render(request, 'Search/search_results.html', {'results': final_result})
+            
+            else :
+                if validate(sequence_query) == True: ## ADN
+                    sequence = sequence_query
+                    database = "nt"
+                    program = "blastn"
+                    blast_search(request, sequence = sequence, database = database, program = program)
+
+                elif validate(sequence_query) == False : ## protein
+                    sequence = sequence_query
+                    database = "uniprotkb"
+                    program = "blastp"
+                    blast_search(request, sequence = sequence, database = database, program = program)
+
+                else :
+                    return render(request, 'Search/search_form.html', {'form': form})
+
         else:
             return render(request, 'Search/search_form.html', {'form': form})
     else:
@@ -627,24 +646,19 @@ def visualizzazione(request):
 
     return render(request, 'visualization.html', {'grafico_html': grafico_html})
 
-def blast_search(request):
-    # Replace 'your_sequence' with your actual DNA, RNA, or protein sequence
-    ## récupérer la séquence mise dans query 
-    # if request.method == 'POST':
-    #     form = GenomeSearchForm(request.POST)
-    #     if form.is_valid():
-    #         if form.cleaned_data['database'] == 'NCBI_Blast':
-    #             sequence_query = form.cleaned_data['sequence']
-    # else:
-    #     form = GenomeSearchForm()
+def blast_search(request,sequence,program,database):
         
-    sequence = "AAAAGTGTACGGATTCTGGAAGCTGAATGCTGTGCAGATCATATCCATATGCTTGTGGAG"
+    ##sequence = "AAAAGTGTACGGATTCTGGAAGCTGAATGCTGTGCAGATCATATCCATATGCTTGTGGAG"
+    ##print("error 1")
     # Specify the BLAST program (e.g., 'blastn' for nucleotides, 'blastp' for proteins)
-    blast_program = "blastn" ## faire des conditions selon ce que l'utilisateur a mis comme seq (peptide ou ADN)
+    ##blast_program = "blastn" ## faire des conditions selon ce que l'utilisateur a mis comme seq (peptide ou ADN)
+    ##print("error 2")
     try:
-        result_handle = NCBIWWW.qblast(program=blast_program, database="nt", sequence=sequence, descriptions=50, hitlist_size=25)
+        result_handle = NCBIWWW.qblast(program = program, database= database, sequence=sequence, descriptions=50, hitlist_size=25)
         blast_results = SearchIO.read(result_handle, "blast-xml")
         context = {'blast_results': blast_results}
-        return render(request, 'blast_results.html', context)
+        print("error 3")
+        return render(request, 'Search/blast_results.html', context)
     except Exception as e:
+        print("error 4")
         return "An error occurred"
