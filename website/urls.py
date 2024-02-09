@@ -16,5 +16,6 @@ urlpatterns = [
     path('annotation_<str:type_of_sequence>/<int:id>/', views.sequence_view, name='annotation'),
     path('validation_<str:type_of_sequence>/<int:id>/', views.sequence_view, name='validation'),
     path('annotated/',views.save_annotation,name='annotated'),
-    path('validated/',views.validate_include_database,name='validated')
+    path('validated/',views.validate_include_database,name='validated'),
+    path('blast_results/', views.blast_search, name='blast_results'),
 ]
