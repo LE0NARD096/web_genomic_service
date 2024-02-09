@@ -630,10 +630,6 @@ def text_extraction(request):
 
     return render(request, 'text_extraction.html', {'form': form})
 
-import plotly.graph_objs as go
-
-import plotly.graph_objs as go
-
 def visualize_genome_genes(genome):
     # Retrieve all genes annotated on the specified genome
     annotated_genes = GeneProtein.objects.select_related('genome').filter(is_validated=True, genome__chromosome='ASM744v1')[:30]
