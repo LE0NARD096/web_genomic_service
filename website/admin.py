@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein
+from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatu
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
@@ -53,3 +53,4 @@ class AnnotationProteinAdmin(admin.ModelAdmin):
         self.message_user(request, f'Marked {queryset.count()} items as annotated.')
 
 
+admin.site.register(AnnotationStatu)

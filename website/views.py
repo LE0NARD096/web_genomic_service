@@ -15,6 +15,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponseForbidden
+from django.urls import reverse
 
 from django.utils import timezone
 from django.db.models import Q
@@ -31,10 +33,36 @@ def home(request):
     print(status_genome)
     return render(request, 'home.html',{'status_genome':status_genome,'status_protein':status_proteins})
 
+def user_registration_status(view_func):
+    """
+    Decorator to check if the user is authenticated.
+    If not, returns a 403 Forbidden response.
+    """
+    def _wrapped_view(request, *args, **kwargs):
+        if "register" in request.path and request.user.is_authenticated:
+                return HttpResponseForbidden("User already authenticated.")
+        else:
+                return view_func(request, *args, **kwargs)
+        
+    return _wrapped_view
+
+def user_login_status(view_func):
+    """
+    Decorator to check if the user is authenticated.
+    If not, returns a 403 Forbidden response.
+    """
+    def _wrapped_view(request, *args, **kwargs):
+        if "login" in request.path and request.user.is_authenticated:
+                return HttpResponseForbidden("User already authenticated.")
+        else:
+                return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+@user_registration_status
 def register_view(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
-        print(form)
         if form.is_valid():
             user = form.save(commit=False)
             user.username = user.username.lower()
@@ -45,7 +73,7 @@ def register_view(request):
 
     return render(request, 'Authentication/register.html', {'form': form})
 
-
+@user_login_status
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, request.POST)
@@ -607,7 +635,7 @@ def text_extraction(request):
 
 def visualizza_geni_genoma(genoma):
     # Recupera tutti i geni annotati sul genoma specificato
-    geni_annotati = GeneProtein.objects.filter(annotated=False, genome=genoma)
+    geni_annotati = GeneProtein.objects.select_related('genome').filter(is_validated=True, genome__chromosome='ASM584v2')[:30]
 
     # Crea una lista di tracce per i geni
     tracce = []
