@@ -630,49 +630,57 @@ def text_extraction(request):
 
     return render(request, 'text_extraction.html', {'form': form})
 
+import plotly.graph_objs as go
 
+import plotly.graph_objs as go
 
+def visualize_genome_genes(genome):
+    # Retrieve all genes annotated on the specified genome
+    annotated_genes = GeneProtein.objects.select_related('genome').filter(is_validated=True, genome__chromosome='ASM744v1')[:30]
+    
+    # Define a color palette
+    color_palette = ['rgb(31, 119, 180)', 'rgb(255, 127, 14)', 'rgb(44, 160, 44)', 'rgb(214, 39, 40)', 'rgb(148, 103, 189)',
+                     'rgb(140, 86, 75)', 'rgb(227, 119, 194)', 'rgb(127, 127, 127)', 'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
+    
+    # Create a list of traces for the genes
+    traces = []
+    for i, gene in enumerate(annotated_genes):
+        color_index = i % len(color_palette)  # Ensure looping through the palette
+        gene_trace = go.Scatter(x=[gene.start, gene.end],
+                                y=[0, 0],
+                                mode='lines',
+                                line=dict(color=color_palette[color_index]),
+                                hoverinfo='text',
+                                hovertext=f'Gene: {gene.accession_number}<br>Start: {gene.start}<br>End: {gene.end}',
+                                name=gene.accession_number)
+        traces.append(gene_trace)
 
-def visualizza_geni_genoma(genoma):
-    # Recupera tutti i geni annotati sul genoma specificato
-    geni_annotati = GeneProtein.objects.select_related('genome').filter(is_validated=True, genome__chromosome='ASM584v2')[:30]
-
-    # Crea una lista di tracce per i geni
-    tracce = []
-    for gene in geni_annotati:
-        traccia_gene = go.Scatter(x=[gene.start, gene.end],
-                                   y=[0, 0],
-                                   mode='markers+text',
-                                   marker=dict(size=10, symbol='line-ns-open', color='blue'),
-                                   text=[gene.accession_number],
-                                   name=gene.accession_number)
-        tracce.append(traccia_gene)
-
-    # Aggiungi tutte le tracce al layout
-    layout = go.Layout(title='Geni sul genoma',
-                       xaxis=dict(title='Posizione nel genoma'),
+    # Add all traces to the layout
+    layout = go.Layout(title='Genes on the genome',
+                       xaxis=dict(title='Position on the genome'),
                        yaxis=dict(visible=False),
                        showlegend=True)
 
-    # Crea la figura
-    figura = go.Figure(data=tracce, layout=layout)
+    # Create the figure
+    figure = go.Figure(data=traces, layout=layout)
 
-    # Converti la figura in HTML
-    grafico_html = figura.to_html(full_html=False)
+    # Convert the figure to HTML
+    html_graph = figure.to_html(full_html=False)
 
-    return grafico_html
+    return html_graph
 
-def visualizzazione(request):
-    # Recupera un'istanza di GeneProtein (esempio)
-    geneprotein_instance = GeneProtein.objects.first()
 
-    # Ora otteniamo l'istanza di Genome associata a questa istanza di GeneProtein
-    genome_instance = geneprotein_instance.genome
+def visualization(request):
+    # Retrieve an instance of GeneProtein (example)
+    gene_protein_instance = GeneProtein.objects.first()
 
-    # Ora possiamo chiamare la funzione visualizza_geni_genoma con l'istanza di Genome
-    grafico_html = visualizza_geni_genoma(genome_instance)
+    # Now we get the Genome instance associated with this GeneProtein instance
+    genome_instance = gene_protein_instance.genome
 
-    return render(request, 'visualization.html', {'grafico_html': grafico_html})
+    # Now we can call the visualize_genome_genes function with the Genome instance
+    html_graph = visualize_genome_genes(genome_instance)
+
+    return render(request, 'visualization.html', {'html_graph': html_graph})
 
 def blast_search(request,sequence,program,database):
         
