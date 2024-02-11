@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatu
+from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatus
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
@@ -29,7 +29,7 @@ class GenomeAdmin(admin.ModelAdmin):
 
 @admin.register(AnnotationGenome)
 class AnnotationGenomeAdmin(admin.ModelAdmin):
-    fields = (('species','annotator','is_annotated'),'annotation_time')
+    fields = (('species','annotator','is_annotated','genome'),'annotation_time')
     list_display = ('species','genome','is_annotated','annotator','annotation_time')
 
     actions = ['mark_as_annotated','mark_as_not_annotated']
@@ -53,4 +53,4 @@ class AnnotationProteinAdmin(admin.ModelAdmin):
         self.message_user(request, f'Marked {queryset.count()} items as annotated.')
 
 
-admin.site.register(AnnotationStatu)
+admin.site.register(AnnotationStatus)

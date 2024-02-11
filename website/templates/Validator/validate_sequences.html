@@ -3,25 +3,123 @@
 {% block content %}
 {% load static %}
 
-<div class="form-container">
-    <form method="post" action="{% url 'validated' %}" class="annotation-form">
-        {% csrf_token %}
-        <div class="form-header">
-            <h2>Annotation Form</h2>
-        </div>
-        <div class="form-field">
-            {{ form.as_p }}
-        </div>
+<style>
+    .form-container {
+        margin-top: 25px;
+        margin-left: 50px;
+        align-items: center;
+       
+    }
+
+    input {
+        width: 756px;
+    }
+    
+    #id_transcript, #id_gene, #id_transcript_biotype, #id_gene_symbol, #id_gene_biotype, #id_description{
+        width: 250px;
+    }
+
+    
+    textarea{
+        width: 756px;
+    }
+
+    #id_comment{
+        width:412px;
+    }
+   
+    .task-box {
+          padding: 15px;
+          width: 500px;
+          height: 600px;
+          margin-top: 15px;
+          margin-left: 20px;
+          overflow-y: auto;
+        }
+
+    .flex-container{
+            display: flex;
+            height: 100vh; 
+        }
+    .task-box nav ul {
+                overflow: hidden;
+                overflow-y: scroll;
+        }
+    
+
+    .message td {
+        height: 500px;
+        }
+
+
+</style>
+<form method="post" action="{% url 'validated' %}" class="annotation-form">
+    {% csrf_token %}
+    <div class="flex-container">
+            <div class="task-box">          
+                    <div class="container">
+                        <div class="card">
+                            <div class="card-header text-center">
+                                <h4>Comment Section</h4>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="table-responsive">
+                                                    <tr>
+                                                        <td>{{ comment.comment }} <br>
+                                                            Annotation status : {{ comment.status }}
+                                                        </td> 
+                                                    </tr>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <button type="submit" class="btn btn-primary" style = " justify-content: center;">Validate</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>     
+            </div>
         
-        <div class="form-header">
-            <h2>Sequence Form</h2>
-        </div>
-        <div class="form-field">
-            {{ form2.as_p }}
-        </div>
+        
+            <div class="form-container">
+                    <div class="form-header">
+                        <h2>Annotation</h2>
+                    </div>
+                    <table>
+                        {% for field in form %}
+                            {% if forloop.first or forloop.counter0|divisibleby:3 %}
+                                <tr>
+                            {% endif %}
+                    
+                            <td>
+                                <label>{{ field.label }}</label><br>
+                                {{ field }}
+                            </td>
+                    
+                            {% if forloop.counter|divisibleby:3 or forloop.last %}
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </table>
+                    
+                    <br>
+                    
 
-        <button type="submit" class="submit-button">Validate</button>
-    </form>
-</div>
-
+                    <div class="form-header">
+                        <h2>Sequence</h2>
+                    </div>
+                    {% for field in form2 %}
+                        <div class="form-field">
+                            <label>{{ field.label }}</label><br>
+                            {{ field }}<br>
+                        </div>
+                    {% endfor %}
+            </div>
+    </div>
+</form>
 {% endblock %}

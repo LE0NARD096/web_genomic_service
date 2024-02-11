@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 
 class Profile(AbstractUser):
     USER = 'user'
@@ -27,15 +28,42 @@ class Profile(AbstractUser):
 
     def __str__(self):
         return str(self.username)
-    
+
+class AnnotationStatus(models.Model):
+    VALIDATED = 'validated'
+    PENDING = 'pending'
+    REFUSED = 'refused'
+
+    ROLE_CHOICES = [
+        (VALIDATED, 'validated'),
+        (PENDING, 'pending'),
+        (REFUSED, 'refused'),
+    ]
+    content_type = models.ForeignKey(ContentType, 
+                                     on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    validator = models.ForeignKey(Profile, 
+                                  on_delete=models.CASCADE)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    comment = models.TextField(blank=True)
+    status = models.CharField('status', choices=ROLE_CHOICES, max_length=50)
+    validation_time = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.object_id) + ': ' + self.status
+
+    class Meta:
+        verbose_name_plural = "Annotation status"
+
+
 class Genome(models.Model):
     sequence = models.TextField(null=True,blank=True)
-    chromosome = models.CharField(max_length=255, unique=True)
+    chromosome = models.CharField(max_length=255)
     start = models.IntegerField(null=True)
     end = models.IntegerField(null=True)
     upload_time = models.DateTimeField(auto_now=True)
     is_validated = models.BooleanField('validated',default=False)
-
+    
     def __str__(self):
         return self.chromosome 
     
@@ -45,6 +73,7 @@ class AnnotationGenome(models.Model):
     annotator = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
     genome = models.OneToOneField(Genome, on_delete=models.CASCADE)
     is_annotated = models.BooleanField('annotated',default=False)
+    comments = GenericRelation(AnnotationStatus)
     
     def __str__(self):
         return self.species
@@ -59,6 +88,7 @@ class GeneProtein(models.Model):
                                on_delete=models.CASCADE)
     upload_time = models.DateTimeField(auto_now=True)
     is_validated = models.BooleanField('validated',default=False)
+   
 
     def __str__(self):
         return self.accession_number + " " + self.type 
@@ -81,15 +111,8 @@ class AnnotationProtein(models.Model):
                                   null=True, 
                                   blank=True)
     is_annotated = models.BooleanField('annotated',default=False)
+    comments = GenericRelation(AnnotationStatus)
 
     def __str__(self):
         return self.gene
 
-class AnnotationStatu(models.Model):
-    content_type = models.ForeignKey(ContentType, 
-                                     on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    validator = models.ForeignKey(Profile, 
-                                  on_delete=models.CASCADE)
-    comment = models.TextField(blank=True)
-    validation_time = models.DateTimeField(auto_now=True)

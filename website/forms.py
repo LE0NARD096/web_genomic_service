@@ -1,6 +1,6 @@
 from typing import Any
 from django import forms
-from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein, Genome
+from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein, Genome, AnnotationStatus
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from Bio import SeqIO
@@ -9,6 +9,22 @@ from django.utils.safestring import mark_safe
 from django.urls import reverse
 
 
+class CommentForm(forms.Form):
+    
+    comment = forms.CharField(required=False,widget=forms.Textarea)
+    
+    STATUS_CHOICES = [
+        ('validated', 'Validate'),
+        ('refused', 'Refuse'),
+    ]
+    
+    status = forms.ChoiceField(label='Status', choices=STATUS_CHOICES)
+
+    def __init__(self, *args, **kwargs):
+        super(CommentForm, self).__init__(*args, **kwargs)
+
+        self.fields["comment"].label = ''
+   
 
 class GenomeSearchForm(forms.Form):
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
@@ -40,7 +56,17 @@ class ProteinAnnotate(forms.ModelForm):
     class Meta:
         model = AnnotationProtein
         fields = '__all__'
-        exclude = ['annotator','is_annotated','annotation_time']
+        exclude = ['annotator','is_annotated','annotation_time', 'geneprotein']
+        read_only_fields = ('is_active', 'is_staff')
+    
+    def __init__(self, *args, **kwargs):
+        self.current_user = kwargs.pop('current_user', None)
+        super(ProteinAnnotate, self).__init__(*args, **kwargs)
+
+        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+            
+            for field_name, field in self.fields.items():
+                field.widget.attrs['readonly'] = True
 
 class SequenceProtein(forms.ModelForm):
     class Meta:
@@ -49,16 +75,32 @@ class SequenceProtein(forms.ModelForm):
         exclude = ['is_validated']
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        self.current_user = kwargs.pop('current_user', None)
+        super(SequenceProtein, self).__init__(*args, **kwargs)
 
-        for field_name in ['sequence']:  
-            self.fields[field_name].label = ''
+        self.fields["sequence"].label = ''
+
+        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+            self.fields['genome'].widget.attrs['disabled'] = True
+            self.fields['genome'].required = False
+            for field_name, field in self.fields.items():
+                field.widget.attrs['readonly'] = True
+        
 
 class GenomeAnnotate(forms.ModelForm):
     class Meta:
         model = AnnotationGenome
         fields = '__all__'
         exclude = ['annotator','is_annotated','annotation_time','genome']
+    
+    def __init__(self, *args, **kwargs):
+        self.current_user = kwargs.pop('current_user', None)
+        super(GenomeAnnotate, self).__init__(*args, **kwargs)
+
+
+        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+            for field_name, field in self.fields.items():
+                field.widget.attrs['readonly'] = True
 
 class SequenceGenome(forms.ModelForm):
     class Meta:
@@ -66,7 +108,14 @@ class SequenceGenome(forms.ModelForm):
         fields = '__all__'
         exclude = ['is_validated','sequence']
 
+    def __init__(self, *args, **kwargs):
+        self.current_user = kwargs.pop('current_user', None)
+        super(SequenceGenome, self).__init__(*args, **kwargs)
 
+        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+            for field_name, field in self.fields.items():
+                field.widget.attrs['readonly'] = True
+    
 
 class DownloadTextForm(forms.Form):
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])

@@ -3,25 +3,99 @@
 {% block content %}
 {% load static %}
 
-<div class="form-container">
-    <form method="post" action="{% url 'annotated' %}" class="annotation-form">
-        {% csrf_token %}
-        <div class="form-header">
-            <h2>Annotation Form</h2>
-        </div>
-        <div class="form-field">
-            {{ form.as_p }}
-        </div>
-        
-        <div class="form-header">
-            <h2>Sequence Form</h2>
-        </div>
-        <div class="form-field">
-            {{ form2.as_p }}
-        </div>
+<style>
+    .form-container {
+        margin-top: 25px;
+        margin-left: 50px;
+        align-items: center;
+       
+    }
 
-        <button type="submit" class="submit-button">Annotate</button>
-    </form>
-</div>
+    input {
+        width: 756px;
+    }
+    
+    #id_transcript, #id_gene, #id_transcript_biotype, #id_gene_symbol, #id_gene_biotype, #id_description{
+        width: 250px;
+    }
+
+    
+    textarea{
+        width: 756px;
+    }
+
+    #id_comment{
+        width:412px;
+    }
+   
+    .task-box {
+          padding: 15px;
+          width: 500px;
+          height: 600px;
+          margin-top: 15px;
+          margin-left: 20px;
+          overflow-y: auto;
+        }
+
+    .flex-container{
+            display: flex;
+            justify-content: center; 
+           
+            height: 100vh; 
+        }
+    .task-box nav ul {
+                overflow: hidden;
+                overflow-y: scroll;
+        }
+    
+
+    .message td {
+        height: 500px;
+        }
+
+</style>
+
+<form method="post" action="{% url 'annotated' %}" class="annotation-form">
+    {% csrf_token %}
+    <div class="flex-container">
+        <div class="form-container">
+            <div class="form-header">
+                    <h2>Annotation</h2>
+                </div>
+                <table>
+                    {% for field in form %}
+                        {% if forloop.first or forloop.counter0|divisibleby:3 %}
+                            <tr>
+                        {% endif %}
+                
+                        <td>
+                            <label>{{ field.label }}</label><br>
+                            {{ field }}
+                        </td>
+                
+                        {% if forloop.counter|divisibleby:3 or forloop.last %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </table>
+                
+                <br>
+                
+
+                <div class="form-header">
+                    <h2>Sequence</h2>
+                </div>
+                {% for field in form2 %}
+                    <div class="form-field">
+                        <label>{{ field.label }}</label><br>
+                        {{ field }}<br>
+                    </div>
+                {% endfor %} 
+                <br>
+                <button type="submit" class="submit-button">Annotate</button>
+            </div>
+        </div>
+    </div>
+</form>
 
 {% endblock %}
