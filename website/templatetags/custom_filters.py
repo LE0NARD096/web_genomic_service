@@ -2,6 +2,9 @@ from django import template
 
 register = template.Library()
 
-@register.filter(name='can_edit_annotation')
-def can_edit_annotation(annotator, request_user):
-    return annotator.id == request_user.id and (request_user.role == "annotator" or request_user.is_superuser)
+@register.simple_tag(takes_context=True)
+def query_transform(context, **kwargs):
+    query = context['request'].GET.copy()
+    for k, v in kwargs.items():
+        query[k] = v
+    return query.urlencode()

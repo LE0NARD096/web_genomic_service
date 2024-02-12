@@ -1,22 +1,145 @@
 {% extends "base.html" %}
-{% block title %}Home page{% endblock %}
+{% block title %}Home results{% endblock %}
 {% block content %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/search.css' %}">
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
+
+<style>
+    table.table {
+        width: 50%;
+        justify-content: center;
+    }
+
+    div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    th, td {
+        max-width: 100px; /* Adjust the max-width as needed */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 8px; /* Add padding for better spacing */
+        text-align: center; /* Center the content */
+    }
+
+    tbody {
+        width: 50%;
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    .pagination {
+        position: absolute;
+        top: 300px;
+        left: 50px;
+    }
+
+</style>
 <h2>Search results</h2>
+<div>
+    {% if results %}
+    <table class="table">
+        <thead>
+        <tr>
+            {% if restults.type == 'genome'%}
+                <th>Chromosome</th>
+            {% else %}
+                <th>Accession Number</th>
+            {% endif %}
+            <th>Species</th>
+            <th>Type</th>
+            <th>Sequence</th>
+            <th>Visualize</th>
+        </tr>
+        </thead>
+        
+        <tbody>
+        {% for result in results %}
+            <tr>
+            <td>
+                    {{ result.chromosome }}
+            </td>
 
-{% if results %}
-    {% for result in results %}
+            <td>
+                    {{ result.species }}
+            </td>
 
-        <a href="{% url 'visualisation' result.type result.id %}">
-            <p>{{ result.chromosome }}</p>
-        </a>
+            <td>
+                    {{ result.type}}
+            </td>
+            
+            <td>
+                <a class="btn btn-primary btn-action"  href="{% url 'visualisation' result.type result.id %}"><i class="fas fa-dna"></i></a>
+                <a class="btn btn-primary btn-action"  href="{% url 'download' result.type result.id %}"><i class="fas fa-download"></i></a>
+            </td>
+            <td>
+                <a class="btn btn-primary btn-action"  href="{% url 'visual_annotation' result.type result.id %}"><i class="fas fa-eye"></i></a>
+            </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+       
+    </table>
 
-    {% endfor %}
-{% else %}
+    {% else %}
     <p>No results found.</p>
-{% endif %}
-{% endblock %}
+    {% endif %}
+    
 
+    {% if results.has_previous or results.has_next %}
+    <div class="pagination">
+
+    {% if results.number != 1 %}
+        <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">First</a></li>
+    {% else %}
+        <li class="page-item disabled"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">First</a></li>
+    {% endif %}
+
+    {% if results.has_previous %}
+        <li class="page-item">
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ results.previous_page_number }}" class="page-link">Previous</a>
+        </li>
+    {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+        </li>
+    {% endif %}
+    
+   
+    <li class="page-item active">
+        <span class="page-link">
+          {{ results.number }}
+        <span class="sr-only">(current)</span>
+    </span>
+
+    {% if results.has_next and results.number != results.paginator.num_pages  %}
+        <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ results.next_page_number }}">Next</a></li>
+    
+    {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Next</span>
+        </li>
+    {% endif %}
+
+    {% if results.paginator.num_pages != results.number   %}
+        <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{results.paginator.num_pages}}">Last</a></li>
+    {% else %}
+        <li class="page-item disabled"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{results.paginator.num_pages}}">Last</a></li>
+    {% endif %}
+
+    {% endif %}
+
+    </div>
+</div>
+
+
+
+
+{% endblock %}
 

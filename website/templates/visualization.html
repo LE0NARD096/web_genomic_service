@@ -1,14 +1,28 @@
-<!-- visualization.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chart visualization</title>
-    <!-- Includi gli script necessari per visualizzare il grafico -->
-    {{ html_graph|safe }}
-</head>
-<body>
-    <!-- Contenuto aggiuntivo se necessario -->
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Visualization{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin-right: 500px;
+    }
+
+    #html-graph-container {
+        margin-bottom: 250px;
+    }
+
+</style>
+
+<div class="container">
+    <div id="html-graph-container">
+        {{ html_graph|safe }}
+    </div>
+</div>
+
+{% endblock %}

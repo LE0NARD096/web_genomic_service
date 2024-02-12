@@ -1,9 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Home results{% endblock %}
+{% block content %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/search.css' %}">
 
+<style>
+    .container {
+        display: flex;
+        justify-content: center;
+        height: 100vh; /* 100% of the viewport height */
+    }
 
-{% if genome_id %}
-            <p class="overflow-wrap overflow-wrap--break-word">{{ genome_id.sequence }}</p>
-{% else %}
-    <p>No results found.</p>
-{% endif %}
+    .box-container {
+        width: 70%; /* Set the width as needed */
+        margin-top: 100px;
+        overflow: auto; /* Enable scrolling for larger text */
+        border: 1px solid #ccc; /* Add border for styling */
+        padding: 10px; /* Add padding for spacing */
+        box-sizing: border-box; /* Include border and padding in the total width */
+        max-height: 700px; /* Set a maximum height for the box */
+    }
+
+    .overflow-wrap {
+        overflow-wrap: break-word;
+    }
+</style>
+
+<div class="container">
+    <div class="box-container">
+        {% if genome_id %}
+            <p class="overflow-wrap">{{ genome_id.sequence }}</p>
+        {% else %}
+            <p>No results found.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

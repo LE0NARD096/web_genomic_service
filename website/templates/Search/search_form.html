@@ -28,7 +28,7 @@
 </script>
 
 <div style="display: flex; justify-content: center; align-items: center; height: 90vh;">
-    <form method="post" action="{% url 'search_results'  %}" style="text-align: left;">
+    <form method="get" action="{% url 'search_results'  %}" style="text-align: left;">
         {% csrf_token %}
         
         <!-- Output Type -->

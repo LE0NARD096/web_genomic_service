@@ -30,6 +30,8 @@ from functools import wraps
 
 from django.shortcuts import get_object_or_404
 
+from django.core.paginator import Paginator
+
 
 def home(request):
     return render(request, 'home.html')
@@ -115,18 +117,16 @@ def logout_view(request):
         return redirect('/')
 
 def search_results(request):
-    if request.method == 'POST':
-        form = GenomeSearchForm(request.POST)
+    if request.method == 'GET':
+        form = GenomeSearchForm(request.GET)
         
         if form.is_valid():
-            print("hey")
             sequence_query = form.cleaned_data['sequence']
             species = form.cleaned_data['species']
             chromosome = form.cleaned_data['chromosome']
             output_type = form.cleaned_data['output_type']
             database = form.cleaned_data['database']
 
-            c = 0
             final_result = []
 
             if database == "BactaHub":
@@ -135,7 +135,7 @@ def search_results(request):
                     results = AnnotationGenome.objects.select_related('genome').filter(
                                                                                 Q(genome__is_validated=True) &
                                                                                 Q(genome__chromosome__startswith=chromosome) &
-                                                                                Q(species__contains=species))
+                                                                                Q(species__contains=species)).only('genome__chromosome','species')
                 
                 else:
                     gene = form.cleaned_data['gene']
@@ -155,7 +155,7 @@ def search_results(request):
                                         Q(transcript__startswith=transcript) &
                                         Q(geneprotein__genome__chromosome__startswith=chromosome) &
                                         Q(geneprotein__genome__annotationgenome__species__contains=species)
-                                        ).only('geneprotein__type','geneprotein__accession_number','geneprotein__id','geneprotein__sequence','geneprotein__genome__id')       
+                                        ).only('geneprotein__type','geneprotein__accession_number','geneprotein__sequence','geneprotein__genome__id','geneprotein__genome__annotationgenome__species')       
             
                 for DNAsequence in results:
                     if output_type == 'genome':
@@ -163,6 +163,7 @@ def search_results(request):
                         if my_dna.count(sequence_query) > 0:
                             result_dic = {
                                             'type': 'genome',
+                                            'species': DNAsequence.species,
                                             'chromosome': DNAsequence.genome.chromosome,
                                             'id': DNAsequence.genome.id,
                                         }
@@ -172,14 +173,18 @@ def search_results(request):
                         if my_protein.count(sequence_query):
                             result_dic = {
                                             'type': sequence_type,
+                                            'species': DNAsequence.geneprotein.genome.annotationgenome.species,
                                             'chromosome': DNAsequence.geneprotein.accession_number,
                                             'id': DNAsequence.geneprotein.id,
                                         }
                     
                             final_result.append(result_dic)
-                    print('ok')
-            
-                return render(request, 'Search/search_results.html', {'results': final_result})
+
+                p = Paginator(final_result,15)
+                page = request.GET.get('page')
+                sequences = p.get_page(page)
+
+                return render(request, 'Search/search_results.html', {'results': sequences, 'form':form})
             
             else :
                 if validate(sequence_query) == True: ## ADN
@@ -627,7 +632,7 @@ def save_annotation(request):
     return render(request,'Annotator/Annotate_sequences.html',{'form': form_annotate , 'form2': form_sequence})
 
 @login_required(login_url="/login")
-def text_extraction(request):
+def text_extraction(request, sequence_type = None, id_sequence = None):
     if request.method == 'POST':
         form = DownloadTextForm(request.POST)
         if form.is_valid():
@@ -709,6 +714,50 @@ def text_extraction(request):
             response = StreamingHttpResponse((line for line in lines), content_type='text/plain')
             response['Content-Disposition'] = f'attachment; filename={species}_{output_type}_found.txt'
             return response
+    
+    elif request.method == 'GET':
+
+            if sequence_type == 'genome':
+                results = AnnotationGenome.objects.select_related('genome').filter(Q(genome__is_validated = True) &
+                                                                                   (Q(genome__pk = id_sequence)))
+            else:
+                results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
+                                                                            Q(geneprotein__is_validated=True) &
+                                                                            Q(geneprotein__pk = id_sequence))
+        
+            lines = []
+           
+            if not results.exists():
+                lines.append(f'No results') 
+
+            elif sequence_type == "genome":
+                for sequence_type in results:
+                        txt_title = sequence_type.genome.chromosome
+                        extraction = sequence_type.genome.sequence
+                        species = sequence_type.species
+                        lines.append(f'>{species};{sequence_type.genome.chromosome};{sequence_type.genome.start};{sequence_type.genome.end}\n')
+                        
+                        for i in range(0, len(extraction), 70):
+                            lines.append(f'{extraction[i:i+70]}\n')
+            else:
+                for sequence_type in results:
+
+                    txt_title = sequence_type.gene
+                    my_sequence = sequence_type.geneprotein.sequence
+                    species = sequence_type.geneprotein.genome.annotationgenome.species
+                    this_gene = sequence_type.gene
+                    this_function = sequence_type.description
+                    this_transcript = sequence_type.transcript
+
+                    lines.append(f'>{species};{sequence_type.geneprotein.accession_number};{sequence_type.geneprotein.type};{this_gene};{this_transcript};{this_function}\n')
+                            
+                    for i in range(0, len(my_sequence), 70):
+                                lines.append(f'{my_sequence[i:i+70]}\n')
+
+                  
+            response = StreamingHttpResponse((line for line in lines), content_type='text/plain')
+            response['Content-Disposition'] = f'attachment; filename={species}_{sequence_type}_{txt_title}.txt'
+            return response
     else:
         form = DownloadTextForm()
 
@@ -716,51 +765,57 @@ def text_extraction(request):
 
 @login_required(login_url="/login")
 def visualize_genome_genes(request, sequence_type, selected_genome_id):
-    print(selected_genome_id)
-    # Retrieve all genes annotated on the specified genome
-    # annotated_genes = Genome.objects.select_related("geneprotein").filter(id=selected_genome_id)[:30]
-
+ 
     if sequence_type == "genome":
-        annotated_genes = GeneProtein.objects.filter(is_validated = True, genome_id = selected_genome_id)[:30]
+        annotated_genes = AnnotationProtein.objects.select_related('geneprotein').filter(geneprotein__is_validated = True, 
+                                                                                         geneprotein__genome__id = selected_genome_id)[:1000]
     else:
-        unknown_gene = GeneProtein.objects.get(id = selected_genome_id)
-        annotated_genes = GeneProtein.objects.filter(is_validated = True, type = sequence_type, genome_id = unknown_gene.genome.id)[:30]
+        unknown_gene = AnnotationProtein.objects.select_related('geneprotein').get(geneprotein_id = selected_genome_id)
+        annotated_genes = AnnotationProtein.objects.select_related('geneprotein').filter(Q(geneprotein__is_validated = True), 
+                                                     Q(geneprotein__type = sequence_type), 
+                                                     Q(geneprotein__genome__id = unknown_gene.geneprotein.genome.id),
+                                                     Q(geneprotein__genome__id = unknown_gene.geneprotein.genome.id),
+                                                     ~ Q(geneprotein__id = unknown_gene.id),
+                                                     Q(geneprotein__start__gte = unknown_gene.geneprotein.start - 50000) &
+                                                     Q(geneprotein__end__lte = unknown_gene.geneprotein.end + 50000))[:1000]
         annotated_genes = list(annotated_genes)  
         annotated_genes.append(unknown_gene)
-    # Define a color palette
+
     color_palette = ['rgb(31, 119, 180)', 'rgb(255, 127, 14)', 'rgb(44, 160, 44)', 'rgb(214, 39, 40)', 'rgb(148, 103, 189)',
                      'rgb(140, 86, 75)', 'rgb(227, 119, 194)', 'rgb(127, 127, 127)', 'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
 
-    # Create a list of traces for the genes
     traces = []
     for i, gene in enumerate(annotated_genes):
         if sequence_type != 'genome' and gene.id == unknown_gene.id:
-            color = 'rgb(255, 0, 0)'
-   
-        
+            color = 'rgb(0, 0, 0)'  # Set a specific lor for the unknown protein
+            line_width = 50
         else:
-            color = color_palette[ i % len(color_palette)]
-    
-            
-        gene_trace = go.Scatter(x=[gene.start, gene.end],
-                                y=[0, 0],
-                                mode='lines',
-                                line=dict(color=color, width=15),
-                                hoverinfo='text',
-                                hovertext=f'Gene: {gene.accession_number}<br>Start: {gene.start}<br>End: {gene.end}',
-                                name=gene.accession_number)
+            color = color_palette[i % len(color_palette)]
+            line_width = 15
+
+        gene_trace = go.Scatter(
+            x=[gene.geneprotein.start, gene.geneprotein.end],
+            y=[0, 0],
+            mode='lines',
+            line=dict(color=color, width=line_width),
+            hoverinfo='text',
+            hovertext=f'Gene: {gene.gene} | Chromosome: {gene.geneprotein.genome.chromosome} | Start: {gene.geneprotein.start} | End: {gene.geneprotein.end}\
+                        <br>Description: {gene.description}',
+            name=gene.geneprotein.accession_number
+        )
         traces.append(gene_trace)
 
-    # Add all traces to the layout
+
     layout = go.Layout(title='Genes on the genome',
                        xaxis=dict(title='Position on the genome'),
                        yaxis=dict(visible=False),
-                       showlegend=True)
-
-    # Create the figure
+                       showlegend=True,
+                       width=1500,  
+                       height=400,
+                       paper_bgcolor='#fbfbf9')
     figure = go.Figure(data=traces, layout=layout)
 
-    # Convert the figure to HTML
+ 
     html_graph = figure.to_html(full_html=False)
 
     return render(request, 'visualization.html', {'html_graph': html_graph})

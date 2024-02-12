@@ -6,6 +6,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'), 
     path('logout/', views.logout_view, name='logout'), 
     path('search/', views.search_results, name='search_results'),
+    path('search/<int:page>', views.search_results, name="search_results"),
     path('upload/', views.upload, name='upload_file'),
     path('register/', views.register_view, name='register'),
     path('text_extraction/', views.text_extraction, name='text_extraction'),
@@ -21,6 +22,7 @@ urlpatterns = [
     path('delete_<str:type_of_sequence>/<int:id>/', views.delete_sequence_from_database, name='delete'),
     path('include_sequence_database_<str:sequence_type>/<int:id_get_sequence>/',views.validate_include_database,name='include'),
     path('visual_annotation_<str:sequence_type>/<int:selected_genome_id>/', views.visualize_genome_genes, name = "visual_annotation"),
+    path('download_<str:sequence_type>/<int:id_sequence>/', views.text_extraction, name='download'),
 ]
 
 
