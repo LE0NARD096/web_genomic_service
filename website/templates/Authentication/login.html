@@ -1,19 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Home page{% endblock %}
+{% block title %}Login{% endblock %}
 {% block content %}
-
-{% if messages %}
-    {% for message in messages %}
-        {{ message }}
-    {% endfor %}
-{% endif %}
-<div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
-    <form method="post" action="{% url 'login' %}" style="margin: 0 auto; width: 400px;">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="hidden" name="next" value="{{ request.GET.next }}">
-        <button type="submit" class="btn btn-primary" style="background-color: #7089b9; color: white;">Login</button>
-    </form>
-</div>
-
+    {% if messages %}
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    {% endif %}
+    <div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
+        <form method="post" action="{% url 'login' %}" style="margin: 0 auto; width: 400px;">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <button type="submit" class="btn btn-primary" style="background-color: #7089b9; color: white;">Login</button>
+        </form>
+    </div>
 {% endblock %}

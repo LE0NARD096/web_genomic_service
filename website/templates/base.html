@@ -8,7 +8,7 @@
           rel="stylesheet" 
           integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" 
           crossorigin="anonymous">
-    <title>{% block title %} Default title {% endblock %}</title>
+          
     <style>
         body {
             background-image: url('{% static "background2.png" %}');
@@ -72,6 +72,12 @@
         .nav-item.home {
             margin-left: 18px;
         }
+        .navbar-brand-custom {
+            font-size: 20px; 
+            font-weight: bold; 
+            color: black;
+            margin-right: 400px;
+        }
     </style>
     
     
@@ -79,6 +85,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light custom-navbar">
         <div class="container-fluid">
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon navbar-toggler-icon-white"></span>
             </button>
@@ -104,6 +111,9 @@
                     {% endif %}
                 </ul>
             </div>
+            {% if request.path != "/" %}
+                <a class="navbar-brand navbar-brand-custom" href="/">BactAHub</a>
+            {% endif %}
             <div>
                 <ul class="navbar-nav">
                     {% if request.user.is_authenticated %}
