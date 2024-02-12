@@ -18,4 +18,9 @@ urlpatterns = [
     path('annotated/',views.save_annotation,name='annotated'),
     path('validated/',views.validate_include_database,name='validated'),
     path('blast_results/', views.blast_search, name='blast_results'),
+    path('delete_<str:type_of_sequence>/<int:id>/', views.delete_sequence_from_database, name='delete'),
+    path('include_sequence_database_<str:sequence_type>/<int:id_get_sequence>/',views.validate_include_database,name='include'),
+    path('visual_annotation_<str:sequence_type>/<int:selected_genome_id>/', views.visualize_genome_genes, name = "visual_annotation"),
 ]
+
+

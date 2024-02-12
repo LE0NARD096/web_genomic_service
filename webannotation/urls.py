@@ -17,7 +17,7 @@ Including another URLconf
 from django.urls import path, include
 from website import views
 from django.contrib import admin
-from website.views import visualization, blast_search
+from website.views import  blast_search
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -26,7 +26,6 @@ urlpatterns = [
     path('', views.home, name='home'),  # Add this line for the home page
     path("admin/", admin.site.urls),
     path('', include('website.urls')),
-    path('visualization/', visualization, name='visualization'),
     path('blast_results/', blast_search, name='blast_results'),
     # ... other url patterns ...
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
