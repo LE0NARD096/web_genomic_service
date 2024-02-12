@@ -4,7 +4,7 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/search.css' %}">
 
-<h2>Résultats de la recherche</h2>
+<h2>Search results</h2>
 
 {% if results %}
     {% for result in results %}
@@ -15,7 +15,7 @@
 
     {% endfor %}
 {% else %}
-    <p>Aucun résultat trouvé.</p>
+    <p>No results found.</p>
 {% endif %}
 {% endblock %}
 

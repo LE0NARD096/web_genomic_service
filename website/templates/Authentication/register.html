@@ -6,45 +6,43 @@
     <p>{{ message }}</p>
 {% endif %}
 
-<style>
-    /* Add some space between form fields */
-    form {
-        margin-bottom: 20px;
-    }
-
-    /* Optionally, add more specific styling for individual form fields */
-    form input {
-        margin-bottom: 10px;
-    }
-</style>
-
-<form method="post" action="{% url 'register' %}">
-    {% csrf_token %}
-    {{ form.username.label_tag }}
-    {{ form.username }}
-    <br>
-    {{ form.email.label_tag }}
-    {{ form.email }}
-    <br>
-    {{ form.first_name.label_tag }}
-    {{ form.first_name }}
-    <br>
-    {{ form.last_name.label_tag }}
-    {{ form.last_name }}
-    <br>
-    {{ form.phone_number.label_tag }}
-    {{ form.phone_number }}
-    <br>
-    {{ form.role.label_tag }}
-    {{ form.role }}
-    <br>
-    {{ form.password1.label_tag }}
-    {{ form.password1 }}
-    <br>
-    {{ form.password2.label_tag }}
-    {{ form.password2 }}
-    <br>
-    <button type="submit">Register</button>
-</form>
+<div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
+    <form method="post" action="{% url 'register' %}" style="margin: 0 auto; width: 400px;">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_username" class="form-label">Username :</label>
+            {{ form.username }}
+        </div>
+        <div class="mb-3">
+            <label for="id_email" class="form-label">Email :</label>
+            {{ form.email }}
+        </div>
+        <div class="mb-3">
+            <label for="id_first_name" class="form-label">First Name : </label>
+            {{ form.first_name }}
+        </div>
+        <div class="mb-3">
+            <label for="id_last_name" class="form-label">Last Name : </label>
+            {{ form.last_name }}
+        </div>
+        <div class="mb-3">
+            <label for="id_phone_number" class="form-label">Phone Number :</label>
+            {{ form.phone_number }}
+        </div>
+        <div class="mb-3">
+            <label for="id_role" class="form-label">Role : </label>
+            {{ form.role }}
+        </div>
+        <div class="mb-3">
+            <label for="id_password1" class="form-label">Password :</label>
+            {{ form.password1 }}
+        </div>
+        <div class="mb-3">
+            <label for="id_password2" class="form-label">Confirm Password :</label>
+            {{ form.password2 }}
+        </div>
+        <button type="submit" class="btn btn-primary" style="background-color: #7089b9; color: white;">Register</button>
+    </form>
+</div>
 
 {% endblock %}

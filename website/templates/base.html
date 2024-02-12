@@ -10,96 +10,149 @@
           crossorigin="anonymous">
     <title>{% block title %} Default title {% endblock %}</title>
     <style>
-        
-        
         body {
-            
             background-image: url('{% static "background2.png" %}');
             background-size: cover;
         }
+    
         .custom-navbar {
             background-color: #7089b9;
         }
         .navbar-toggler-icon-white {
-            background-color: white;
-            border-radius: 4px;
+            background-color: #7089b9;
+            border: none;
         }
         .nav-links {
             display: none;
-            background-color: #333;
+            background-color: #7089b9;
             color: white;
+            padding: 10px;
+            position: absolute;
+            top: 60px; /* Adjust this value as needed */
+            left: 20;
+            width: 100%;
+            z-index: 1;
         }
         .nav-links a {
             display: block;
-            padding: 15px;
-            color: white;
+            padding: 10px;
+            color: black;
             text-decoration: none;
+            padding: 10px 0;
         }
         .nav-links a:hover {
-            background-color: #111;
+            background-color: white;
+        }
+        /* Hamburger Menu Button */
+        .hamburger-button {
+            background-color: #7089b9;
+            color: black;
+            padding: 1.75px 0;
+            font-size: 24px;
+            cursor: pointer;
+            position: absolute;
+            top: 5px;
+            left: 8px;
+            z-index: 2;
+        }
+        @media (max-width: 500px) {
+            .hamburger-button {
+                display: block;
+                background-color: #7089b9;
+                color: white;
+                padding: 2.55px 0; /* Adjust padding to match navbar height */
+                font-size: 24px;
+                cursor: pointer;
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 1;
+            }
+        }
+        .nav-item.home {
+            margin-left: 18px;
         }
     </style>
+    
+    
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light custom-navbar">
-    <div class="container-fluid">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon navbar-toggler-icon-white"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="/">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/search">Search</a>
-                </li>
-                {% if request.user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/upload">Upload</a>
+    <nav class="navbar navbar-expand-lg navbar-light custom-navbar">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon navbar-toggler-icon-white"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item home">
+                        <a class="nav-link" href="/">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/text_extraction">Download</a>
-                    </li>
+                    
+                    
+                    {% if request.user.is_authenticated %}
+                    
                     {% if request.user.role == "validator" or request.user.is_superuser %}
-                        <li class="nav-item">
+                        <li class="nav-item" style="margin-right: 10px;"> <!-- Adjust margin-right value as needed -->
                             <a class="nav-link" href="/validator_view">Validator dashboard<span class="badge badge-light">{{ notifications_validator }}</span> </a>
                         </li>
                     {% endif %}
                     {% if request.user.role == "annotator" or request.user.is_superuser %}
-                        <li class="nav-item">
+                        <li class="nav-item" style="margin-right: 10px;"> <!-- Adjust margin-right value as needed -->
                             <a class="nav-link" href="/annotator_dashboard">Annotator dashboard<span class="badge badge-light">{{ notifications_annotator }}</span> </a>
                         </li>
                     {% endif %}
-                {% endif %}
-            </ul>
+                    {% endif %}
+                </ul>
+            </div>
+            <div>
+                <ul class="navbar-nav">
+                    {% if request.user.is_authenticated %}
+                    <span class="navbar-text">Logged in as {{user.username}} | </span>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">Register</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div> 
         </div>
-        <div>
-            <ul class="navbar-nav">
-                {% if request.user.is_authenticated %}
-                <span class="navbar-text">Logged in as {{user.username}} | </span>
-                <li class="nav-item">
-                    <a class="nav-link" href="/logout">Logout</a>
-                </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="/login">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/register">Register</a>
-                </li>
-                {% endif %}
-            </ul>
-        </div> 
+    </nav>
+    
+    
+    <!-- Hamburger Menu -->
+    <button class="hamburger-button" onclick="toggleNav()">☰</button>
+    <div class="nav-links">
+        <a href="/search">Search</a>
+        {% if request.user.is_authenticated %}
+        <a href="/upload">Upload</a>
+        <a href="/text_extraction">Download</a>
+        {% endif %}
+
     </div>
-</nav>
 
     {% block content %}
     {% endblock %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" 
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" 
-        crossorigin="anonymous">
-</script>
+    <script>
+        function toggleNav() {
+            var navLinks = document.querySelector('.nav-links');
+            if (navLinks.style.display === "block") {
+                navLinks.style.display = "none";
+            } else {
+                navLinks.style.display = "block";
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" 
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" 
+            crossorigin="anonymous">
+    </script>
 </body>
 </html>
