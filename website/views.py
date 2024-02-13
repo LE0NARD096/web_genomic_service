@@ -68,6 +68,17 @@ def user_is_annotator(view_func):
             return HttpResponseForbidden(f"Access Forbidden - {request.user.username} is not annotator or admin")
     return _wrapped_view
 
+def is_not_user(view_func):
+   
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+
+        if request.user.role != 'user'  and request.user.is_authenticated:
+            return view_func(request, *args, **kwargs)
+        else:
+            return HttpResponseForbidden(f"Access Forbidden - {request.user.username} is not an annotator, validator or admin")
+    return _wrapped_view
+
 
 @user_registration_login_status
 def register_view(request):
@@ -551,7 +562,7 @@ def annotator_view(request):
     return render(request, 'Annotator/Annotator_dashboard.html', context)
 
 @login_required(login_url="/login")
-@user_is_annotator
+@is_not_user
 def sequence_view(request,type_of_sequence,id):
     request.session['type'] = type_of_sequence
     print('hey')
@@ -715,50 +726,54 @@ def text_extraction(request, sequence_type = None, id_sequence = None):
             response['Content-Disposition'] = f'attachment; filename={species}_{output_type}_found.txt'
             return response
     
-    elif request.method == 'GET':
+    elif request.method == 'GET' and "download" in request.get_full_path():
+               
+                output_type = sequence_type
+    
+                if output_type == 'genome':
+                    results = AnnotationGenome.objects.select_related('genome').filter(Q(genome__is_validated = True) &
+                                                                                    (Q(genome__pk = id_sequence)))
+                else:
+                    results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
+                                                                                Q(geneprotein__is_validated=True) &
+                                                                                Q(geneprotein__pk = id_sequence))
+            
+                lines = []
+            
+                if not results.exists():
+                    lines.append(f'No results') 
 
-            if sequence_type == 'genome':
-                results = AnnotationGenome.objects.select_related('genome').filter(Q(genome__is_validated = True) &
-                                                                                   (Q(genome__pk = id_sequence)))
-            else:
-                results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
-                                                                            Q(geneprotein__is_validated=True) &
-                                                                            Q(geneprotein__pk = id_sequence))
-        
-            lines = []
-           
-            if not results.exists():
-                lines.append(f'No results') 
-
-            elif sequence_type == "genome":
-                for sequence_type in results:
-                        txt_title = sequence_type.genome.chromosome
-                        extraction = sequence_type.genome.sequence
-                        species = sequence_type.species
-                        lines.append(f'>{species};{sequence_type.genome.chromosome};{sequence_type.genome.start};{sequence_type.genome.end}\n')
-                        
-                        for i in range(0, len(extraction), 70):
-                            lines.append(f'{extraction[i:i+70]}\n')
-            else:
-                for sequence_type in results:
-
-                    txt_title = sequence_type.gene
-                    my_sequence = sequence_type.geneprotein.sequence
-                    species = sequence_type.geneprotein.genome.annotationgenome.species
-                    this_gene = sequence_type.gene
-                    this_function = sequence_type.description
-                    this_transcript = sequence_type.transcript
-
-                    lines.append(f'>{species};{sequence_type.geneprotein.accession_number};{sequence_type.geneprotein.type};{this_gene};{this_transcript};{this_function}\n')
+                elif output_type == "genome":
+                    for sequence_type in results:
+                            txt_title = sequence_type.genome.chromosome
+                            extraction = sequence_type.genome.sequence
+                            species = sequence_type.species
+                            lines.append(f'>{species};{sequence_type.genome.chromosome};{sequence_type.genome.start};{sequence_type.genome.end}\n')
                             
-                    for i in range(0, len(my_sequence), 70):
-                                lines.append(f'{my_sequence[i:i+70]}\n')
+                            for i in range(0, len(extraction), 70):
+                                lines.append(f'{extraction[i:i+70]}\n')
+                else:
+                    for sequence_type in results:
 
-                  
-            response = StreamingHttpResponse((line for line in lines), content_type='text/plain')
-            response['Content-Disposition'] = f'attachment; filename={species}_{sequence_type}_{txt_title}.txt'
-            return response
+                        txt_title = sequence_type.gene
+                        my_sequence = sequence_type.geneprotein.sequence
+                        species = sequence_type.geneprotein.genome.annotationgenome.species
+                        this_gene = sequence_type.gene
+                        this_function = sequence_type.description
+                        this_transcript = sequence_type.transcript
+
+                        lines.append(f'>{species};{sequence_type.geneprotein.accession_number};{sequence_type.geneprotein.type};{this_gene};{this_transcript};{this_function}\n')
+                                
+                        for i in range(0, len(my_sequence), 70):
+                                    lines.append(f'{my_sequence[i:i+70]}\n')
+
+                    
+                response = StreamingHttpResponse((line for line in lines), content_type='text/plain')
+                response['Content-Disposition'] = f'attachment; filename={species}_{output_type}_{txt_title}.txt'
+                return response
+            
     else:
+        print(request.GET)
         form = DownloadTextForm()
 
     return render(request, 'text_extraction.html', {'form': form})
@@ -829,6 +844,9 @@ def blast_search(request,sequence,program,database):
     # Specify the BLAST program (e.g., 'blastn' for nucleotides, 'blastp' for proteins)
     ##blast_program = "blastn" ## faire des conditions selon ce que l'utilisateur a mis comme seq (peptide ou ADN)
     ##print("error 2")
+
+    result_handle = NCBIWWW.qblast('blastn', 'nt', 'MT747438')
+
     try:
         result_handle = NCBIWWW.qblast(program = program, database= database, sequence=sequence, descriptions=50, hitlist_size=25)
         blast_results = SearchIO.read(result_handle, "blast-xml")
