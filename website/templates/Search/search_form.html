@@ -35,7 +35,8 @@
 </script>
 
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <div style="justify-content: center; align-items: center; height: 75vh;">
+    <div style="justify-content: center; align-items: center; height: 95vh;">
+        <h2 class="text-center mb-4">Search Page</h2>
     <form method="get" action="{% url 'search_results'  %}">
         {% csrf_token %}
         {% if form.errors %}
