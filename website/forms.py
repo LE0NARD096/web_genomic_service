@@ -7,6 +7,7 @@ from Bio import SeqIO
 from io import StringIO
 from django.utils.safestring import mark_safe
 from django.urls import reverse
+import re
 
 
 class CommentForm(forms.Form):
@@ -39,14 +40,29 @@ class GenomeSearchForm(forms.Form):
     
     def clean_sequence(self):
         sequence = self.cleaned_data.get('sequence')
+        type_sequence = self.cleaned_data.get('output_type')
+
+        if type_sequence == 'genome' and re.fullmatch(r'^[ACDEFGHIKLMNPQRSTVWY]*$', sequence):
+           raise ValidationError(("You can't search a protein fragment in a genome"), code='invalid')
 
         if len(sequence) < 3:
            raise ValidationError(('Sequence too short'), code='invalid')
         
         if len(sequence) > 924:
             raise ValidationError(('Sequence too long'), code='invalid')
-  
+
+        if re.search('%',sequence):
+            if re.fullmatch(r'%[ATGCN]+%[ATGCN]+%',sequence) is None:
+                if re.fullmatch(r'%[ARNDCQEGHILKMFPSTWYV]+%[ARNDCQEGHILKMFPSTWYV]+%',sequence) is None:
+                    raise ValidationError(("The protein sequence has a" + ' % ' + "symbol but doesn't respect the pattern " + "%" + "any protein/DNA" + "%" + "any protein/DNA" + "%"), code='invalid')
+        
+        else:
+            if re.fullmatch(r'^[ATGCN]*$',sequence) is None:
+                if re.fullmatch(r'^[ACDEFGHIKLMNPQRSTVWY]*$',sequence) is None:
+                    raise ValidationError(("The sequence does not respect a protein or DNA format"), code='invalid')
+            
         return sequence
+        
 
 class ProteinAnnotate(forms.ModelForm):
     class Meta:
