@@ -35,14 +35,14 @@
 </script>
 
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <div style="justify-content: center; align-items: center; height: 75vh;">
+    <div style="justify-content: center; align-items: center; height: 90vh;">
     <form method="get" action="{% url 'search_results'  %}">
         {% csrf_token %}
         {% if form.errors %}
                 {% for error in form.errors.sequence %}
-                <div style="background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a; margin-bottom: 10px; text-align: center;">
-                    <strong>Error:</strong> {{ error }}
-                </div>
+                    <div style="width: 424px; background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a; margin-bottom: 10px; text-align: center; word-wrap: break-word;">
+                        <strong>Error:</strong> {{ error }}
+                    </div>
                 {% endfor %}
         {% endif %}
         

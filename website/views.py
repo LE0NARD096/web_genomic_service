@@ -166,29 +166,65 @@ def search_results(request):
                                         Q(geneprotein__genome__chromosome__startswith=chromosome) &
                                         Q(geneprotein__genome__annotationgenome__species__contains=species)
                                         ).only('geneprotein__type','geneprotein__accession_number','geneprotein__sequence','geneprotein__genome__id','geneprotein__genome__annotationgenome__species')       
-            
-                for DNAsequence in results:
-                    if output_type == 'genome':
-                        my_dna = Seq(DNAsequence.genome.sequence)
-                        if my_dna.count(sequence_query) > 0:
-                            result_dic = {
-                                            'type': 'genome',
-                                            'species': DNAsequence.species,
-                                            'chromosome': DNAsequence.genome.chromosome,
-                                            'id': DNAsequence.genome.id,
-                                        }
-                            final_result.append(result_dic)
+                
+                special_query = False
+
+                if re.search('%',sequence_query):
+                    special_query = True
+                    sequence_pattern = sequence_query.split("%")
+                    if sequence_type == 'cds' or output_type == 'genome':
+                        pattern = re.compile(sequence_pattern[1] + "([ATGCN])*?" + sequence_pattern[2])
                     else:
-                        my_protein = Seq(DNAsequence.geneprotein.sequence)
-                        if my_protein.count(sequence_query):
-                            result_dic = {
-                                            'type': sequence_type,
-                                            'species': DNAsequence.geneprotein.genome.annotationgenome.species,
-                                            'chromosome': DNAsequence.geneprotein.accession_number,
-                                            'id': DNAsequence.geneprotein.id,
-                                        }
-                    
-                            final_result.append(result_dic)
+                        pattern = re.compile(sequence_pattern[1] + "([ACDEFGHIKLMNPQRSTVWY])*?" + sequence_pattern[2])
+
+
+                if special_query:
+                    print(pattern)
+                    for DNAsequence in results:
+                        if output_type == 'genome': 
+                            if pattern.search(DNAsequence.genome.sequence):
+                                result_dic = {
+                                                'type': 'genome',
+                                                'species': DNAsequence.species,
+                                                'chromosome': DNAsequence.genome.chromosome,
+                                                'id': DNAsequence.genome.id,
+                                            }
+                                final_result.append(result_dic)
+                        else:
+                            if pattern.search(DNAsequence.geneprotein.sequence):
+                                
+                                result_dic = {
+                                                'type': sequence_type,
+                                                'species': DNAsequence.geneprotein.genome.annotationgenome.species,
+                                                'chromosome': DNAsequence.geneprotein.accession_number,
+                                                'id': DNAsequence.geneprotein.id,
+                                            }
+                        
+                                final_result.append(result_dic)
+
+                else:
+                    for DNAsequence in results:
+                        if output_type == 'genome':
+                            my_dna = Seq(DNAsequence.genome.sequence)
+                            if my_dna.count(sequence_query) > 0:
+                                result_dic = {
+                                                'type': 'genome',
+                                                'species': DNAsequence.species,
+                                                'chromosome': DNAsequence.genome.chromosome,
+                                                'id': DNAsequence.genome.id,
+                                            }
+                                final_result.append(result_dic)
+                        else:
+                            my_protein = Seq(DNAsequence.geneprotein.sequence)
+                            if my_protein.count(sequence_query):
+                                result_dic = {
+                                                'type': sequence_type,
+                                                'species': DNAsequence.geneprotein.genome.annotationgenome.species,
+                                                'chromosome': DNAsequence.geneprotein.accession_number,
+                                                'id': DNAsequence.geneprotein.id,
+                                            }
+                        
+                                final_result.append(result_dic)
 
                 p = Paginator(final_result,15)
                 page = request.GET.get('page')
