@@ -27,7 +27,7 @@ class CommentForm(forms.Form):
    
 
 class GenomeSearchForm(forms.Form):
-    output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
+    output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')])
     sequence = forms.CharField(label='Sequence:', required=True,widget=forms.Textarea)
     species =forms.CharField(label='Species', required=False)
     chromosome = forms.CharField(label='Chromosome', required=False)
@@ -35,7 +35,7 @@ class GenomeSearchForm(forms.Form):
     transcript = forms.CharField(label='Transcript', required=False)
     gene = forms.CharField(label='Gene', required=False)
     function = forms.CharField(label='Function',required=False)
-    database = forms.ChoiceField(label = 'Database', choices=[('BactaHub', 'BactaHub'), ('Uniprot','Uniprot')])
+    database = forms.ChoiceField(label = 'Database', choices=[('BactaHub', 'BactaHub'), ('NCBI','NCBI')])
     
     def clean_sequence(self):
         sequence = self.cleaned_data.get('sequence')
