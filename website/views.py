@@ -128,9 +128,8 @@ def logout_view(request):
         return redirect('/')
 
 def search_results(request):
-    if request.method == 'GET':
+    if request.method == 'GET' and request.GET:
         form = GenomeSearchForm(request.GET)
-        
         if form.is_valid():
             sequence_query = form.cleaned_data['sequence']
             species = form.cleaned_data['species']
@@ -212,7 +211,7 @@ def search_results(request):
 
                 else :
                     return render(request, 'Search/search_form.html', {'form': form})
-
+                
         else:
             return render(request, 'Search/search_form.html', {'form': form})
     else:

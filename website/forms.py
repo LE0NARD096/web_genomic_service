@@ -34,23 +34,19 @@ class GenomeSearchForm(forms.Form):
     ##
     transcript = forms.CharField(label='Transcript', required=False)
     gene = forms.CharField(label='Gene', required=False)
-    function = forms.CharField(label='function',required=False)
+    function = forms.CharField(label='Function',required=False)
     database = forms.ChoiceField(label = 'Database', choices=[('BactaHub', 'BactaHub'), ('Uniprot','Uniprot')])
     
-    def clean(self):
-        """
-        Validate the form input
-        """
-        cleaned_data = super().clean()
-        type = cleaned_data.get('output_type')
+    def clean_sequence(self):
+        sequence = self.cleaned_data.get('sequence')
 
-        #if type == 'gene_protein':
-            #gene = cleaned_data.get('gene')
-           # if not gene:
-                #self.add_error('gene', ("This field is required for gene/protein"))
-    
-
-        return cleaned_data
+        if len(sequence) < 3:
+           raise ValidationError(('Sequence too short'), code='invalid')
+        
+        if len(sequence) > 924:
+            raise ValidationError(('Sequence too long'), code='invalid')
+  
+        return sequence
 
 class ProteinAnnotate(forms.ModelForm):
     class Meta:

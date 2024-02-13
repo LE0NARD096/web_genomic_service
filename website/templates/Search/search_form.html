@@ -2,6 +2,13 @@
 {% block title %}Home page{% endblock %}
 {% block content %}
 
+
+<style>
+    #id_chromosome, #id_species,  #id_gene,  #id_transcript, #id_function  {
+        width: 424px;
+    }
+</style>
+
 <script>
     function toggleFields() {
         var outputType = document.getElementById("id_output_type").value;
@@ -27,11 +34,19 @@
     }
 </script>
 
-<div style="display: flex; justify-content: center; align-items: center; height: 90vh;">
-    <form method="get" action="{% url 'search_results'  %}" style="text-align: left;">
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <div style="justify-content: center; align-items: center; height: 75vh;">
+    <form method="get" action="{% url 'search_results'  %}">
         {% csrf_token %}
+        {% if form.errors %}
+                {% for error in form.errors.sequence %}
+                <div style="background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a; margin-bottom: 10px; text-align: center;">
+                    <strong>Error:</strong> {{ error }}
+                </div>
+                {% endfor %}
+        {% endif %}
         
-        <!-- Output Type -->
+            <!-- Output Type -->
         {{ form.output_type.label_tag }}
         {{ form.output_type }}<br>
         
@@ -63,6 +78,6 @@
     toggleFields();
     document.getElementById("id_output_type").addEventListener("change", toggleFields);
 </script>
-
+</div>
 </div>
 {% endblock %}
