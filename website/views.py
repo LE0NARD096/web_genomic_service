@@ -140,6 +140,7 @@ def search_results(request):
             final_result = []
 
             if database == "BactaHub":
+                sequence_type = "unknown"
                 if output_type == 'genome':
 
                     results = AnnotationGenome.objects.select_related('genome').filter(
