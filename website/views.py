@@ -238,13 +238,13 @@ def search_results(request):
                     sequence = sequence_query
                     database = "nt"
                     program = "blastn"
-                    blast_search(request, sequence = sequence, database = database, program = program)
+                    return blast_search(request, sequence = sequence, database = database, program = program)
 
                 elif validate(sequence_query) == False : ## protein
                     sequence = sequence_query
                     database = "uniprotkb"
                     program = "blastp"
-                    blast_search(request, sequence = sequence, database = database, program = program)
+                    return blast_search(request, sequence = sequence, database = database, program = program)
 
                 else :
                     return render(request, 'Search/search_form.html', {'form': form})
@@ -887,6 +887,7 @@ def blast_search(request,sequence,program,database):
         result_handle = NCBIWWW.qblast(program = program, database= database, sequence=sequence, descriptions=50, hitlist_size=25)
         blast_results = SearchIO.read(result_handle, "blast-xml")
         context = {'blast_results': blast_results}
+        print(blast_results)
         print("error 3")
         return render(request, 'Search/blast_results.html', context)
     except Exception as e:
