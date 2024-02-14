@@ -1,6 +1,6 @@
 import os
 from django.core.management.base import BaseCommand, CommandError
-from website.models import GeneProtein, Genome, AnnotationGenome, AnnotationProtein
+from website.models import GeneProtein, Genome, AnnotationGenome, AnnotationProtein, Profile
 from Bio import SeqIO
 import re
 from django.utils import timezone
@@ -8,6 +8,7 @@ import warnings
 from django.db import transaction
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from django.contrib.auth.hashers import make_password
 
 def batch_iterator(iterator, batch_size):
     """Returns lists of length batch_size.
@@ -37,14 +38,53 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
 
         parser.add_argument('folder_path', type=str, help='Folder path containing files to be saved in the database')
-        parser.add_argument('query_per_sequence', type=int, help='Number of sequences saved in the database per query', choices=range(1, 999))
         parser.add_argument('--annotated', action='store_true' , help='The sequences are all annotated or not')
+        parser.add_argument('--populatewithusers', action='store_true' , help='The sequences are all annotated or not')
     
     def handle(self, *args, **options):
         folder_path = options['folder_path']
         annotated = options['annotated']
-        query_per_sequence = options['query_per_sequence']
-    
+        populate_with_users = options['populatewithusers']
+
+        if populate_with_users:
+            created_user = Profile.objects.get_or_create(email='user@gmail.com',
+                                          defaults={
+                                              'username':'user',
+                                              'role':'user',
+                                              'password': make_password('test'),
+                                              'is_approved': True
+                                          })
+            if created_user[1]:
+                print('User created')
+            
+            created_annotator = Profile.objects.get_or_create(email='annotator@gmail.com',
+                                          defaults={
+                                              'username':'annotator',
+                                              'role':'annotator',
+                                              'password': make_password('test'),
+                                              'is_approved': True
+                                          })
+            if created_annotator[1]:
+                print('Annotator created')
+            
+            created_validator = Profile.objects.get_or_create(email='validator@gmail.com',
+                                          defaults={
+                                              'username':'validator',
+                                              'role':'validator',
+                                              'password': make_password('test'),
+                                              'is_approved': True
+                                          })
+            
+            if created_validator[1]:
+                print('Validator created')
+
+            if not Profile.objects.filter(email='admin@gmail.com').exists():
+                admin = Profile.objects.create_superuser('admin', 'admin@gmail.com', 'test')
+                admin.role = 'admin'
+                admin.is_approved = True
+                admin.save()
+                print('Admin created')
+
         files_fasta=[]
         for file_fasta in os.listdir(folder_path):
                 if file_fasta.lower().endswith('.fa'):
@@ -59,12 +99,7 @@ class Command(BaseCommand):
             print(file)
 
             if match.group(1) and (match.group(2) == 'cds' or match.group(2) == 'pep'):
-                sequence_proteins = []
-                annotation_proteins = []
-                counter_for_bulk = 0
-                base = query_per_sequence
-
-                sum_sequences_file = list(SeqIO.parse(os.path.join(folder_path, file), "fasta"))
+                query_per_sequence = 800
                 record_iter = SeqIO.parse(open(os.path.join(folder_path, file)), "fasta")
                 
                 with transaction.atomic():
@@ -89,25 +124,26 @@ class Command(BaseCommand):
                             genome, created = Genome.objects.get_or_create(chromosome=chromosome,
                                                             defaults={'upload_time':timezone.now()})
 
-                            if created and genome.sequence is None:
-                                genome.save()
-                            
-                            if annotated:
+                            pattern2 = re.compile(r'description:(.*?)\b')
+                            match = pattern2.search(record.description)
+
+                            if annotated and match:
                                 validated_status = True
                         
-                            geneprotein_instance = GeneProtein(accession_number=a_n,
-                                                               sequence=sequence,
-                                                               type=type,
-                                                               start=start,
-                                                               end=end,
-                                                               genome=genome,
-                                                               is_validated = validated_status)
-                                                                                
-                            
-                            sequence_proteins.append(geneprotein_instance)
-                            
-                            if annotated:
-                                gene=description[9]
+                            geneprotein_instance, created = GeneProtein.objects.get_or_create(accession_number=a_n,
+                                                                                     type=type,
+                                                                                     defaults={'start':start,
+                                                                                               'sequence': sequence,                                                                                               'end': end,
+                                                                                               'genome': genome,
+                                                                                               'is_validated': validated_status,
+                                                                                               'upload_time': timezone.now()})
+
+                            if not created:
+                                continue
+            
+
+                            if annotated and match:
+                                gene=description[9] 
                                 gene_symbol_exist = re.search(r'gene_symbol:(\S+)',record.description)
 
                                 if gene_symbol_exist:
@@ -139,44 +175,14 @@ class Command(BaseCommand):
                                         description_protein=' '.join(description[17:])
 
 
-                                annotation_protein = AnnotationProtein(
-                                                                        gene=gene,
-                                                                        transcript=transcript,
-                                                                        gene_biotype=gene_biotype,
-                                                                        transcript_biotype=transcript_biotype,
-                                                                        gene_symbol=gene_symbol,
-                                                                        geneprotein=geneprotein_instance,
-                                                                        description=description_protein,
-                                                                        is_annotated=True
-                                                                    )
-
-                                annotation_proteins.append(annotation_protein)
-
-                            counter_for_bulk += 1
-
-                            if counter_for_bulk == base or counter_for_bulk == len(sum_sequences_file):
-                                    
-                                base += query_per_sequence
-
-                                
-                                if annotated:
-
-                                    for i in range(len(sequence_proteins)):
-                                        sequence_proteins[i].upload_time = timezone.now()
-                                        annotation_proteins[i].annotation_time = timezone.now()
-
-                                    GeneProtein.objects.bulk_create(sequence_proteins)
-                                    AnnotationProtein.objects.bulk_create(annotation_proteins)
-                                                
-                                else:
-                                    for i in range(len(sequence_proteins)):
-                                        sequence_proteins[i].upload_time = timezone.now()
-
-                                    GeneProtein.objects.bulk_create(sequence_proteins)
-                                
-                                sequence_proteins.clear()
-                                annotation_proteins.clear()
-                                    
+                                AnnotationProtein.objects.create(gene=gene,
+                                                                 transcript=transcript,
+                                                                 gene_biotype=gene_biotype,
+                                                                 transcript_biotype=transcript_biotype,
+                                                                 gene_symbol=gene_symbol,
+                                                                 geneprotein=geneprotein_instance,
+                                                                 description=description_protein,
+                                                                 is_annotated=True)
 
             elif match.group(1):
                 try:
@@ -202,31 +208,38 @@ class Command(BaseCommand):
                                                         'end':end,
                                                         'upload_time':timezone.now()
                                                             })
+                
+                pattern2 = re.compile(r'new_(.*?)\b')
+                match = pattern2.search(file)
                                                 
                 # We populate the "artificial" genome created by the proteins
-                if not created and genome.sequence is None:
+                if not created and genome.sequence is None and match is None:
                     genome.sequence=sequence
                     genome.start=start
                     genome.end=end
                     genome.is_validated=True
                     genome.save()
                 
-                elif created:
+                elif created and match is None:
                     genome.is_validated=True
+                    genome.save()
+                
+                elif match:
+                    genome.is_validated=False
                     genome.save()
                 
                 else:
                     warnings.warn(f'The genome in fasta file {file} is already in the database', stacklevel=2)
                     continue
+
                                
-                if annotated:
-                    species = species = re.split(r'[_.]', file)[:-1]
+                if annotated and match is None:
+                    species = re.split(r'[_.]', file)[:-1]
                     species = " ".join(species)
-                    annotations = AnnotationGenome.objects.create(species=species,
+                    AnnotationGenome.objects.create(species=species,
                                                                     genome=genome,
                                                                     is_annotated=True,
                                                                     annotation_time = timezone.now())
-                    annotations.save()
             
             else:
                 raise CommandError(f"The title of the fasta file {file} doesn't respect your_bacteria_species_cds or pep.fa")

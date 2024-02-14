@@ -23,6 +23,7 @@ urlpatterns = [
     path('include_sequence_database_<str:sequence_type>/<int:id_get_sequence>/',views.validate_include_database,name='include'),
     path('visual_annotation_<str:sequence_type>/<int:selected_genome_id>/', views.visualize_genome_genes, name = "visual_annotation"),
     path('download_<str:sequence_type>/<int:id_sequence>/', views.text_extraction, name='download'),
+    path('update_profile/', views.update_profile, name='update_profile'),
 ]
 
 

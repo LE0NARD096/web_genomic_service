@@ -27,6 +27,12 @@ class CommentForm(forms.Form):
         self.fields["comment"].label = ''
    
 
+class UpdateForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['username','first_name', 'last_name', 'phoneNumber']
+    
+
 class GenomeSearchForm(forms.Form):
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')])
     sequence = forms.CharField(label='Sequence:', required=True,widget=forms.Textarea)
@@ -75,7 +81,7 @@ class ProteinAnnotate(forms.ModelForm):
         self.current_user = kwargs.pop('current_user', None)
         super(ProteinAnnotate, self).__init__(*args, **kwargs)
 
-        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+        if self.current_user.role == 'validator':
             
             for field_name, field in self.fields.items():
                 field.widget.attrs['readonly'] = True
@@ -92,7 +98,7 @@ class SequenceProtein(forms.ModelForm):
 
         self.fields["sequence"].label = ''
 
-        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+        if self.current_user.role == 'validator':
             self.fields['genome'].widget.attrs['disabled'] = True
             self.fields['genome'].required = False
             for field_name, field in self.fields.items():
@@ -110,7 +116,7 @@ class GenomeAnnotate(forms.ModelForm):
         super(GenomeAnnotate, self).__init__(*args, **kwargs)
 
 
-        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+        if self.current_user.role == 'validator':
             for field_name, field in self.fields.items():
                 field.widget.attrs['readonly'] = True
 
@@ -124,7 +130,7 @@ class SequenceGenome(forms.ModelForm):
         self.current_user = kwargs.pop('current_user', None)
         super(SequenceGenome, self).__init__(*args, **kwargs)
 
-        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+        if self.current_user.role == 'validator':
             for field_name, field in self.fields.items():
                 field.widget.attrs['readonly'] = True
     

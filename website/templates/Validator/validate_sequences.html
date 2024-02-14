@@ -53,6 +53,14 @@
 
 
 </style>
+
+{% if messages %}
+    {% for message in messages %}
+        {{ message }}
+    {% endfor %}
+{% endif %}
+
+
 <form method="post" action="{% url 'validated' %}" class="annotation-form">
     {% csrf_token %}
     <div class="flex-container">
