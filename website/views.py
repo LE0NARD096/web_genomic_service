@@ -167,7 +167,7 @@ def search_results(request):
             chromosome = form.cleaned_data['chromosome']
             output_type = form.cleaned_data['output_type']
             database = form.cleaned_data['database']
-
+            
             final_result = []
 
             if database == "BactaHub":
@@ -183,7 +183,7 @@ def search_results(request):
                     gene = form.cleaned_data['gene']
                     transcript = form.cleaned_data['transcript']
                     function = form.cleaned_data['function']
-                 
+                    print(gene)
                     if validate(sequence_query,'dna'):
                         sequence_type = 'cds'        
                     else:
@@ -199,6 +199,8 @@ def search_results(request):
                                         Q(geneprotein__genome__annotationgenome__species__contains=species)
                                         ).only('geneprotein__type','geneprotein__accession_number','geneprotein__sequence','geneprotein__genome__id','geneprotein__genome__annotationgenome__species')       
                 
+                print(results)
+
                 special_query = False
 
                 if re.search('%',sequence_query):
@@ -258,6 +260,7 @@ def search_results(request):
                         
                                 final_result.append(result_dic)
 
+                print(final_result)
                 p = Paginator(final_result,15)
                 page = request.GET.get('page')
                 sequences = p.get_page(page)

@@ -131,12 +131,12 @@ class Command(BaseCommand):
                                 validated_status = True
                         
                             geneprotein_instance, created = GeneProtein.objects.get_or_create(accession_number=a_n,
-                                                                                     type=type,
-                                                                                     defaults={'start':start,
-                                                                                               'sequence': sequence,                                                                                               'end': end,
-                                                                                               'genome': genome,
-                                                                                               'is_validated': validated_status,
-                                                                                               'upload_time': timezone.now()})
+                                                                                              type=type,
+                                                                                              defaults={'start':start,
+                                                                                                        'sequence': sequence,                                                                                               'end': end,
+                                                                                                        'genome': genome,
+                                                                                                        'is_validated': validated_status,
+                                                                                                        'upload_time': timezone.now()})
 
                             if not created:
                                 continue
@@ -182,6 +182,7 @@ class Command(BaseCommand):
                                                                  gene_symbol=gene_symbol,
                                                                  geneprotein=geneprotein_instance,
                                                                  description=description_protein,
+                                                                 annotation_time = timezone.now(),
                                                                  is_annotated=True)
 
             elif match.group(1):
@@ -211,8 +212,7 @@ class Command(BaseCommand):
                 
                 pattern2 = re.compile(r'new_(.*?)\b')
                 match = pattern2.search(file)
-                                                
-                # We populate the "artificial" genome created by the proteins
+
                 if not created and genome.sequence is None and match is None:
                     genome.sequence=sequence
                     genome.start=start
@@ -237,9 +237,9 @@ class Command(BaseCommand):
                     species = re.split(r'[_.]', file)[:-1]
                     species = " ".join(species)
                     AnnotationGenome.objects.create(species=species,
-                                                                    genome=genome,
-                                                                    is_annotated=True,
-                                                                    annotation_time = timezone.now())
+                                                    genome=genome,
+                                                    is_annotated=True,
+                                                    annotation_time = timezone.now())
             
             else:
                 raise CommandError(f"The title of the fasta file {file} doesn't respect your_bacteria_species_cds or pep.fa")

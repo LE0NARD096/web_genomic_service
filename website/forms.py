@@ -48,7 +48,7 @@ class GenomeSearchForm(forms.Form):
         sequence = self.cleaned_data.get('sequence')
         type_sequence = self.cleaned_data.get('output_type')
 
-        if type_sequence == 'genome' and re.fullmatch(r'^[ACDEFGHIKLMNPQRSTVWY]*$', sequence):
+        if type_sequence == 'genome' and re.fullmatch(r'^[ATGCN]*$', sequence) is None:
            raise ValidationError(("You can't search a protein fragment in a genome"), code='invalid')
 
         if len(sequence) < 3:
