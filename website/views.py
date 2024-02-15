@@ -31,7 +31,7 @@ from functools import wraps
 from django.shortcuts import get_object_or_404
 
 from django.core.paginator import Paginator
-
+from django.http import Http404
 
 def home(request):
     return render(request, 'home.html')
@@ -583,36 +583,31 @@ def validate_include_database(request, sequence_type=None, id_get_sequence=None)
 
 @login_required(login_url="/login")
 @user_is_validator
-def assigned_annotators(request):
+def assigned_annotators(request, type_of_sequence):
     if request.method == 'POST':
 
-        print(request.POST)
-   
-        anno_id_protein = request.POST.getlist('annotation_id_protein')
-        anno_id_genome = request.POST.getlist('annotation_id_genome')
+        anno_id_annotator = request.POST['annotator']
+        anno_id_sequence = request.POST['annotation_id']
 
-
-        annotator_protein = request.POST.getlist('annotator_protein')
-        annotator_genome = request.POST.getlist('annotator_genome')
         
-        if len(anno_id_protein) != 0:
-            for i in range(len(anno_id_protein)):
-                new_annotation_protein = AnnotationProtein.objects.create(
-                    annotator_id=annotator_protein[i],
-                    geneprotein_id=anno_id_protein[i]
+        if anno_id_annotator != '':
+            if type_of_sequence == 'genome':
+               AnnotationGenome.objects.create(
+                    annotator_id=anno_id_annotator,
+                    genome_id=anno_id_sequence
                 )
-                
-        if len(anno_id_genome) != 0:
-            for i in range(len(anno_id_genome)):
-                new_annotation_genome = AnnotationGenome.objects.create(
-                    annotator_id=annotator_genome[i],
-                    genome_id=anno_id_genome[i]
+            else:
+                AnnotationProtein.objects.create(
+                    annotator_id=anno_id_annotator,
+                    geneprotein_id=anno_id_sequence
                 )
-                
 
-        return render(request, 'Validator/validate_annotators.html')
+        else:
+            raise Http404("The requested resource was not found.")
+            
+        return validator_view(request)
 
-    return redirect('home')
+    return validator_view(request)
 
 @login_required(login_url="/login")
 @user_is_validator
@@ -637,13 +632,14 @@ def delete_sequence_from_database(request,type_of_sequence,id):
 def annotator_view(request):
     annotator = request.user.id
     unannotated_genomes = AnnotationGenome.objects.filter(is_annotated=False, 
-                                                          annotator=annotator,
-                                                          genome__sequence__isnull=False)
+                                                          annotator=annotator)
+    
     unannotated_proteins= AnnotationProtein.objects.filter(is_annotated=False, annotator=annotator)[:6]
 
     status_genome = AnnotationGenome.objects.select_related('genome').filter(annotator_id = request.user.id)
     status_protein = AnnotationProtein.objects.select_related('geneprotein').filter(annotator_id = request.user.id)
-                                                           
+
+    print(unannotated_genomes)                                                 
     context = {
         'protein_annotations': unannotated_proteins,
         'genome_annotations': unannotated_genomes,
