@@ -1,12 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Login{% endblock %}
 {% block content %}
-    {% if messages %}
-        {% for message in messages %}
-            {{ message }}
-        {% endfor %}
-    {% endif %}
-
+   
 <style>
     .card {
         width: 400px;
@@ -90,32 +85,47 @@
 </style>
 
 
-<div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
-    <form class="form card" method="post" action="{% url 'update_profile' %}">
-        {% csrf_token %}
-        <div class="card_header">
-          <h1 class="form_heading">Update your profile</h1>
+<div class="container" style="display: grid; place-items: center; height: 90vh;">
+    <div>
+        {% if success %}
+        <div class="alert alert-success" role="alert" style="text-align: center; width: 400px">
+            {{ success }}
         </div>
-        <div class="field">
-          <label for="username">Username</label>
-          {{ form.username }}
-        </div>
-        <div class="field">
-          <label for="first_name">First name</label>
-          {{ form.first_name }}
-        </div>
-        <div class="field">
-            <label for="last_name">Last name</label>
-            {{ form.last_name }}
-          </div>
-          <div class="field">
-            <label for="phone_number">Phone number</label>
-            {{ form.phoneNumber }}
-          </div>
-        <div class="field">
-            <button class="button">Update</button>
-          </div>
-      </form>
+        {% endif %}
+        {% if form.errors.phoneNumber %}
+            {% for errorMsg in form.errors.phoneNumber %}
+            <div class="alert alert-danger" role="alert" style="text-align: center; width: 400px">
+                {{ errorMsg }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form class="form card" method="post" action="{% url 'update_profile' %}">
+            {% csrf_token %}
+            <div class="card_header">
+                <h1 class="form_heading">Update your profile</h1>
+            </div>
+            <div class="field">
+                <label for="username">Username</label>
+                {{ form.username }}
+            </div>
+            <div class="field">
+                <label for="first_name">First name</label>
+                {{ form.first_name }}
+            </div>
+            <div class="field">
+                <label for="last_name">Last name</label>
+                {{ form.last_name }}
+            </div>
+            <div class="field">
+                <label for="phone_number">Phone number</label>
+                {{ form.phoneNumber }}
+            </div>
+            <div class="field">
+                <button class="button">Update</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 {% endblock %}

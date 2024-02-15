@@ -140,17 +140,26 @@ def update_profile(request):
             update_profile_instance = form.save(commit=False)
             update_profile_instance.user = user
             update_profile_instance.save()
-            
-            return redirect('home')
 
+            context = {
+                'form': form,
+                'success': 'Your profile has been updated successfully !'
+            }
+   
+            return render (request, "update_profile.html", context)
+        else:
+            print(form)
+            context = {
+                'form': form,
+                'error': form.errors
+            }
+            return render (request, "update_profile.html", context)
     else:
         form = UpdateForm(instance=request.user)
 
     context = {
         'form': form
     }
-  
-    print(form)
 
     return render(request, "update_profile.html", context)
 

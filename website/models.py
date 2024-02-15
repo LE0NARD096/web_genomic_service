@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from phonenumber_field.modelfields import PhoneNumberField
 
 class Profile(AbstractUser):
     USER = 'user'
@@ -20,7 +21,7 @@ class Profile(AbstractUser):
     REQUIRED_FIELDS = ['username']
 
     email = models.EmailField('email', max_length=200, unique=True)
-    phoneNumber = models.CharField('phone_number', max_length=15)
+    phoneNumber = PhoneNumberField('phonenumber',null=True, blank=True, unique=True)
     first_name = models.CharField('first_name', max_length=200)
     last_name = models.CharField('last_name', max_length=200)
     role = models.CharField('role', choices=ROLE_CHOICES, max_length=50)
