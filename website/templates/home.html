@@ -2,6 +2,7 @@
 {% block title %}Home page{% endblock %}
 {% block content %}
 {% load custom_filters %}
+{% load static %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <style>
     .centered {
@@ -9,37 +10,98 @@
     }
 
     
-      .status-container {
-          display: flex;
-          justify-content: space-between;
-      }
+    body {
+      background-image: url('static/background.png');
+    }
+
+    .container {
+      max-width: 900px; 
+
+  }
+
   
       .status-column {
           width: 30%; 
       }
-    body {
-        
-        background-image: url('static/background.png');
-    }
-
+   
     .text-middle {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
         font-weight: bold; 
         font-size: larger; 
     }
+
+      img{
+        max-width: 80%;
+      }
+      
+      
+      .wrap {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 50px;
+        flex-direction: row;
+        align-items: center; 
+    }
+
+    .pane {
+        text-align: center;
+        transition: transform 0.3s ease-in-out;
+        margin-right: 20px;
+    }
+
+    .pane:hover {
+        transform: scale(1.1);
+    }
+
+    .pane h2 {
+        margin-bottom: 10px;
+    }
+
+    .pane img {
+      border-radius: 50%;
+  }
     
   </style>
 
 
   {% if request.user.is_authenticated %}
+    
+  <div class="container">
+    <div>
     <h1 class="centered">Welcome {{ request.user.username }} to BactAHub</h1>
-    <p class="centered">The home page of our application for annotating and analyzing bacterial genomes.</p>
-    <div class="container">
-      <p class="text-middle centered">BactAHub allows for the annotation of bacterial genomes with an efficient visualization of gene localization. It facilitates the selective extraction of annotated data, provides access to sequence alignment tools via external APIs such as Blast, and encourages collaboration between annotators and validators to ensure the quality of generated information.</p>
-    </div> 
+    <p class="text-middle centered">BactAHub allows for the annotation of bacterial genomes with an efficient visualization of gene localization. It facilitates the selective extraction of annotated data, provides access to sequence alignment tools via external APIs such as Blast, and encourages collaboration between annotators and validators to ensure the quality of generated information.</p>
+    </div>
+    
+    <div class="wrap">
+        <div class="pane">
+            <h2>Search</h2>
+            <a href="/search">
+              <img src="{% static 'search.png' %}" alt="Search Image">
+          </a>
+          
+        </div>
+        <div class="pane">
+            <h2>Upload</h2>
+          
+            <a href="/upload">
+              <img src="{% static 'upload.png' %}" alt="Upload Image">
+          </a>
+
+        </div>
+        <div class="pane">
+          <h2>Download</h2>
+        
+          <a href="/text_extraction">
+            <img src="{% static 'download.png' %}" alt="Download Image">
+        </a>
+
+      </div>
+    
+    </div>
+</div>
+
+   
+
+
   {% else %}
     <h1 class="centered">Welcome to BactAHub</h1>
     <p class="centered">The home page of our application for annotating and analyzing bacterial genomes.</p>

@@ -4,8 +4,85 @@
 
 
 <style>
-    #id_chromosome, #id_species,  #id_gene,  #id_transcript, #id_function  {
-        width: 424px;
+    .card {
+        width: 600px;
+        height: 120%;
+        margin-top: 174px;
+        background: #F4F6FB;
+        border: 1px solid white;
+        box-shadow: 10px 10px 64px 0px rgba(180, 180, 207, 0.75);
+        -webkit-box-shadow: 10px 10px 64px 0px rgba(186, 186, 202, 0.75);
+        -moz-box-shadow: 10px 10px 64px 0px rgba(208, 208, 231, 0.75);
+      }
+      
+      .form {
+        padding: 25px;
+      }
+      
+      .card_header {
+        display: flex;
+        align-items: center;
+      }
+      
+      .card svg {
+        color: #7878bd;
+        margin-bottom: 20px;
+        margin-right: 5px;
+      }
+      
+      .form_heading {
+        padding-bottom: 15px;
+        font-size: 21px;
+        color: #7089b9;
+      }
+      
+      .field {
+        padding-bottom: 5px;
+      }
+      
+      #id_gene, #id_output_type, #id_database, #id_function, #id_chromosome, #id_species, #id_sequence, #id_transcript  {
+        border-radius: 5px;
+        background-color: #e9e9f7;
+        padding: 5px;
+        width: 100%;
+        color: #7a7ab3;
+        border: 1px solid #dadaf7
+      }
+      
+      .input:focus-visible {
+        outline: 1px solid #aeaed6;
+      }
+      
+      .input::placeholder {
+        color: #bcbcdf;
+      }
+      
+      label {
+        color: #B2BAC8;
+        font-size: 14px;
+        display: block;
+        padding-bottom: 4px;
+      }
+      
+      button {
+        background-color: #7089b9;
+        margin-top: 10px;
+        font-size: 14px;
+        padding: 7px 12px;
+        height: auto;
+        font-weight: 500;
+        color: white;
+        border: none;
+      }
+      
+      button:hover {
+        background-color: #5f5f9c;
+      }
+
+      .form_heading a {
+        text-decoration: none; 
+        color: #7089b9; 
+                
     }
 </style>
 
@@ -34,51 +111,63 @@
     }
 </script>
 
-<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <div style="justify-content: center; align-items: center; height: 95vh;">
-        <h2 class="text-center mb-4">Search Page</h2>
-    <form method="get" action="{% url 'search_results'  %}">
+<div class="container d-flex justify-content-center align-items-center" style="height: 90vh;">
+    <form class="form card" method="get" action="{% url 'search_results'  %}">
         {% csrf_token %}
         {% if form.errors %}
                 {% for error in form.errors.sequence %}
-                    <div style="width: 424px; background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a; margin-bottom: 10px; text-align: center; word-wrap: break-word;">
+                    <div style="width: 100%; background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a; margin-bottom: 10px; text-align: center; word-wrap: break-word;">
                         <strong>Error:</strong> {{ error }}
                     </div>
                 {% endfor %}
         {% endif %}
         
-            <!-- Output Type -->
-        {{ form.output_type.label_tag }}
-        {{ form.output_type }}<br>
-        
-        <!-- Genome Fields -->
-        <br>
-        {{ form.sequence.label_tag }}<br> 
-        {{ form.sequence }}<br>
-        {{ form.chromosome.label_tag }}<br> 
-        {{ form.chromosome }}<br>
-        {{ form.species.label_tag }}<br>
-        {{ form.species }}<br>
-
-        <!-- Protein Fields -->
-        <div id="geneProteinFields">
-            {{ form.gene.label_tag }} <br>
-            {{ form.gene }}<br>
-            {{ form.transcript.label_tag }} <br>
-            {{ form.transcript }}<br>
-            {{ form.function.label_tag }}<br>
-            {{ form.function }}<br>
+        <div class="field">
+          <label>{{ form.output_type.label_tag }}</label>
+          {{ form.output_type }}
         </div>
-        {{ form.database.label_tag }} <br>
-        {{form.database}} <br>
-        <br>
-        <button type="submit" class="btn btn-primary" style="background-color: #7089b9; color: white;">Search</button>
-    </form>
+        <div class="field">
+            <label>{{ form.sequence.label_tag }}</label>
+            {{ form.sequence }}
+        </div>
+        <div class="field">
+            <label>{{ form.chromosome.label_tag }}</label>
+            {{ form.chromosome }}
+        </div>
+        <div class="field">
+            <label>{{ form.species.label_tag }}</label>
+            {{ form.species }}
+        </div>
+        <div id="geneProteinFields">
+                <div class="field">
+                <label>{{ form.gene.label_tag }}</label>
+                {{ form.gene }}
+                </div>
+                <div class="field">
+                    <label>{{ form.transcript.label_tag }}</label>
+                    {{ form.transcript }}
+                </div>
+                <div class="field">
+                    <label>{{ form.function.label_tag }}</label>
+                    {{ form.function }}
+                </div> 
+                
+        </div>
+                <div class="field">
+                <label for="password2">{{ form.database.label_tag }}</label>
+                    {{ form.database}}
+                </div>  
+        
+                <div class="field">
+                <button class="button">Search</button>
+                </div>
+      </form>
+</div>
+
 
 <script>
     toggleFields();
     document.getElementById("id_output_type").addEventListener("change", toggleFields);
 </script>
-</div>
-</div>
+
 {% endblock %}
