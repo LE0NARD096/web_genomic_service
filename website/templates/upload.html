@@ -1,24 +1,126 @@
 {% extends "base.html" %}
-{% block title %}Home page{% endblock %}
+{% block title %}Upload{% endblock %}
 {% block content %}
 
-<div class="container text-center mx-auto">
-    <h2>Upload Data</h2>
 
-    <div class="form-group mt-4" style="max-width: 500px; display: block; margin: 0 auto;">
-        <form method="post" action="{% url 'upload_file' %}?next={{ request.GET.next }}" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{form.as_p}}
-            <button type="submit" class="btn btn-primary" style="background-color: #7089b9; color: white;">Submit</button>
-        </form>
-    </div>
+<style>
+    .card {
+        width: 600px;
+        height: 350px;
+        margin-top: 174px;
+        background: #F4F6FB;
+        border: 1px solid white;
+        box-shadow: 10px 10px 64px 0px rgba(180, 180, 207, 0.75);
+        -webkit-box-shadow: 10px 10px 64px 0px rgba(186, 186, 202, 0.75);
+        -moz-box-shadow: 10px 10px 64px 0px rgba(208, 208, 231, 0.75);
+      }
+      
+      .form {
+        padding: 25px;
+      }
+      
+      .card_header {
+        display: flex;
+        align-items: center;
+      }
+      
+      .card svg {
+        color: #7878bd;
+        margin-bottom: 20px;
+        margin-right: 5px;
+      }
+      
+      .form_heading {
+        padding-bottom: 15px;
+        font-size: 21px;
+        color: #7089b9;
+      }
+      
+      .field {
+        padding-bottom: 5px;
+      }
+      
+      #id_output_type, #id_sequence {
+        border-radius: 5px;
+        background-color: #e9e9f7;
+        padding: 5px;
+        width: 100%;
+        color: #7a7ab3;
+        border: 1px solid #dadaf7
+      }
+      
+      .input:focus-visible {
+        outline: 1px solid #aeaed6;
+      }
+      
+      .input::placeholder {
+        color: #bcbcdf;
+      }
+      
+      label {
+        color: #B2BAC8;
+        font-size: 14px;
+        display: block;
+        padding-bottom: 4px;
+      }
+      
+      button {
+        background-color: #7089b9;
+        margin-top: 10px;
+        font-size: 14px;
+        padding: 7px 12px;
+        height: auto;
+        font-weight: 500;
+        color: white;
+        border: none;
+      }
+      
+      button:hover {
+        background-color: #5f5f9c;
+      }
 
-    {% if error_message %}
-        <div class="alert alert-danger mt-4" role="alert" style="max-width: 400px; margin: 0 auto;">
-            <h2>⚠️Error⚠️</h2>
-            <p>{{ error_message }}</p>
+      .form_heading a {
+        text-decoration: none; 
+        color: #7089b9; 
+                
+    }
+</style>
+
+<div class="container d-flex justify-content-center align-items-center" style="height:70vh;">
+    <form class="form card" method="post" action="{% url 'upload_file' %}?next={{ request.GET.next }}">
+        {% csrf_token %}
+        {% if error_message %}
+                    <div style="width: 100%; background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a; margin-bottom: 10px; text-align: center; word-wrap: break-word;">
+                        <strong>Error:</strong> {{ error_message }}
+                    </div>
+        {% endif %}
+
+        <div class="card_header">
+            <h1 class="form_heading">Upload</h1>
+          </div>
+        
+        <div class="field">
+          <label>{{ form.sequence.label_tag }}</label>
+          {{ form.sequence }}
         </div>
-    {% endif %}
+        <div class="field">
+            <label>{{ form.output_type.label_tag }}</label>
+            {{ form.output_type }}
+        </div>
+        <div class="field">
+            <label>{{ form.annotated.label_tag }}</label>
+            {{ form.annotated}}
+        </div>    
+                <div class="field">
+                <button class="button">Upload</button>
+                </div>
+      </form>
 </div>
+
+
+<script>
+    toggleFields();
+    document.getElementById("id_output_type").addEventListener("change", toggleFields);
+</script>
 
 {% endblock %}

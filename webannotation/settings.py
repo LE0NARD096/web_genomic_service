@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'website',
+    'tinymce',
 ]
 
 MIDDLEWARE = [
@@ -136,3 +137,5 @@ AUTH_USER_MODEL = "website.Profile"
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 
 PHONENUMBER_DEFAULT_REGION = 'FR'
+
+

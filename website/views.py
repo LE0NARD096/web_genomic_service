@@ -1,5 +1,5 @@
-from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatus
-from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein, GenomeAnnotate, SequenceGenome, UserRegistrationForm, CommentForm, UpdateForm
+from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatus, Post
+from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein, GenomeAnnotate, SequenceGenome, UserRegistrationForm, CommentForm, UpdateForm, ReplyForm, CreatePostForm
 from django.contrib.contenttypes.models import ContentType
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -34,7 +34,13 @@ from django.core.paginator import Paginator
 from django.http import Http404
 
 def home(request):
-    return render(request, 'home.html')
+    posts = Post.objects.all()
+    form = CreatePostForm
+    context = {
+        'forum_post': posts,
+        'form': form,
+    }
+    return render(request, 'home.html', context)
 
 def user_registration_login_status(view_func):
     @wraps(view_func)
@@ -592,20 +598,23 @@ def assigned_annotators(request, type_of_sequence):
         
         if anno_id_annotator != '':
             if type_of_sequence == 'genome':
-               AnnotationGenome.objects.create(
+               sequence_annotation = AnnotationGenome.objects.create(
                     annotator_id=anno_id_annotator,
                     genome_id=anno_id_sequence
                 )
+               message = f'Genome sequence "{sequence_annotation.genome.chromosome}" has been assigned successfully to {sequence_annotation.annotator.username}'
             else:
-                AnnotationProtein.objects.create(
+                sequence_annotation = AnnotationProtein.objects.create(
                     annotator_id=anno_id_annotator,
                     geneprotein_id=anno_id_sequence
                 )
+                message = f'CDS/PEP sequence "{sequence_annotation.geneprotein.accession_number}" has been assigned successfully to {sequence_annotation.annotator.username}'
 
         else:
             raise Http404("The requested resource was not found.")
             
-        return validator_view(request)
+        messages.success(request, message)
+        return HttpResponseRedirect(reverse('validator_view'))
 
     return validator_view(request)
 
@@ -820,11 +829,11 @@ def text_extraction(request, sequence_type = None, id_sequence = None):
     
                 if output_type == 'genome':
                     results = AnnotationGenome.objects.select_related('genome').filter(Q(genome__is_validated = True) &
-                                                                                    (Q(genome__pk = id_sequence)))
+                                                                                    (Q(genome__pk = id_sequence)))[:20]
                 else:
                     results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
                                                                                 Q(geneprotein__is_validated=True) &
-                                                                                Q(geneprotein__pk = id_sequence))
+                                                                                Q(geneprotein__pk = id_sequence))[:100]
             
                 lines = []
             
@@ -836,7 +845,7 @@ def text_extraction(request, sequence_type = None, id_sequence = None):
                             txt_title = sequence_type.genome.chromosome
                             extraction = sequence_type.genome.sequence
                             species = sequence_type.species
-                            lines.append(f'>{species};{sequence_type.genome.chromosome};{sequence_type.genome.start};{sequence_type.genome.end}\n')
+                            lines.append(f'>{species};chromosome;{sequence_type.genome.chromosome};{sequence_type.genome.start}:{sequence_type.genome.end}\n')
                             
                             for i in range(0, len(extraction), 70):
                                 lines.append(f'{extraction[i:i+70]}\n')
@@ -857,7 +866,7 @@ def text_extraction(request, sequence_type = None, id_sequence = None):
 
                     
                 response = StreamingHttpResponse((line for line in lines), content_type='text/plain')
-                response['Content-Disposition'] = f'attachment; filename={species}_{output_type}_{txt_title}.txt'
+                response['Content-Disposition'] = f'attachment; filename={species}_{output_type}_{txt_title}.fa'
                 return response
             
     else:
@@ -945,3 +954,60 @@ def blast_search(request,sequence,program,database):
     except Exception as e:
         print("error 4")
         return "An error occurred"
+
+## FORUM ##
+    
+def post(request, post_url):
+    post = get_object_or_404(Post, url = post_url)
+    forum = Post.objects.all()
+
+    contentype = ContentType.objects.get_for_model(Post)
+                        
+    comments = AnnotationStatus.objects.filter(
+                                 content_type=contentype,
+                                 object_id = post.id).all()
+    form = ReplyForm
+    print(post_url)
+    context = {
+        'forum_post': post,
+        'comments': comments,
+        'forum': forum,
+        'form': form
+    }
+    return render(request, "forums.html", context)
+
+def post_new_comment(request,post_url,post_id):
+    user = request.user
+    if request.method == "POST":
+        form = ReplyForm(request.POST)
+
+        if form.is_valid():
+            comment = request.POST['comment']
+            contentype = ContentType.objects.get_for_model(Post)
+            AnnotationStatus.objects.create(content_type=contentype,
+                                               object_id = post_id,
+                                               validator = user,
+                                               comment = comment)
+        
+            return post(request,post_url)
+
+def create_new_post(request):
+    user = request.user
+    print(user)
+    if request.method == "POST":
+        form = CreatePostForm(request.POST)
+        print(form.is_valid())
+        if form.is_valid():
+            new_post = form.save(commit=False)
+            new_post.author = user
+            new_post.save()
+
+            return home(request)
+        
+        else:
+            context = {
+                'form': form
+            }
+            return render(request, 'home.html', context)
+    
+    return render(request, 'home.html')

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -24,6 +24,10 @@ urlpatterns = [
     path('visual_annotation_<str:sequence_type>/<int:selected_genome_id>/', views.visualize_genome_genes, name = "visual_annotation"),
     path('download_<str:sequence_type>/<int:id_sequence>/', views.text_extraction, name='download'),
     path('update_profile/', views.update_profile, name='update_profile'),
+    path('tinymce/', include('tinymce.urls')),
+    path('post/<str:post_url>/', views.post, name = 'post_url'),
+    path('post/<str:post_url>/<int:post_id>/',views.post_new_comment, name = "new_comment"),
+    path('create_new_post/', views.create_new_post, name="create_new_post"),
 ]
 
 

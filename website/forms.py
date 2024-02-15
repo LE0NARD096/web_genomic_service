@@ -1,6 +1,6 @@
 from typing import Any
 from django import forms
-from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein, Genome, AnnotationStatus
+from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein, Genome, AnnotationStatus, Post
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from Bio import SeqIO
@@ -8,7 +8,7 @@ from io import StringIO
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 import re
-
+from tinymce.widgets import TinyMCE
 
 class CommentForm(forms.Form):
     
@@ -178,3 +178,14 @@ class UserRegistrationForm(UserCreationForm):
     class Meta:
         model = Profile
         fields = ['username','email', 'first_name', 'last_name', 'phone_number', 'role', 'password1', 'password2']
+
+
+
+class ReplyForm(forms.Form):
+    comment = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Post a comment'}))
+
+class CreatePostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title','content']
+        widgets = {'content': TinyMCE(mce_attrs={'height': 280}), 'title': forms.TextInput(attrs={'placeholder': 'Title'})}
