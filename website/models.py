@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from phonenumber_field.modelfields import PhoneNumberField
+from django.utils.text import slugify
+from tinymce.models import HTMLField
 
 class Profile(AbstractUser):
     USER = 'user'
@@ -20,7 +23,7 @@ class Profile(AbstractUser):
     REQUIRED_FIELDS = ['username']
 
     email = models.EmailField('email', max_length=200, unique=True)
-    phoneNumber = models.CharField('phone_number', max_length=15)
+    phoneNumber = PhoneNumberField('phonenumber',null=True, blank=True, unique=True)
     first_name = models.CharField('first_name', max_length=200)
     last_name = models.CharField('last_name', max_length=200)
     role = models.CharField('role', choices=ROLE_CHOICES, max_length=50)
@@ -115,4 +118,23 @@ class AnnotationProtein(models.Model):
 
     def __str__(self):
         return self.gene
+comments = GenericRelation(AnnotationStatus)
+
+class Post(models.Model):
+    title = models.CharField(max_length = 500)
+    url = models.SlugField(max_length=500, unique=True, blank=True)
+    author = models.ForeignKey(Profile, 
+                               on_delete=models.CASCADE)
+    content = HTMLField()
+    publication_date = models.DateTimeField(auto_now_add = True)
+    comments = GenericRelation(AnnotationStatus)
+    
+    def __str__(self):
+        return self.title
+    
+    def save(self, *args, **kwargs):
+        if not self.url:
+            self.url = slugify(self.title)
+        super(Post, self).save(*args, **kwargs)
+
 

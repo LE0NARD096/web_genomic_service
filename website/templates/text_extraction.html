@@ -1,76 +1,184 @@
 {% extends "base.html" %}
-{% block title %}Home page{% endblock %}
+{% block title %}Download{% endblock %}
 {% block content %}
 
-<title>Download Text Form</title>
+
+<style>
+    .card {
+        width: 600px;
+        height: 120%;
+        margin-top: 174px;
+        background: #F4F6FB;
+        border: 1px solid white;
+        box-shadow: 10px 10px 64px 0px rgba(180, 180, 207, 0.75);
+        -webkit-box-shadow: 10px 10px 64px 0px rgba(186, 186, 202, 0.75);
+        -moz-box-shadow: 10px 10px 64px 0px rgba(208, 208, 231, 0.75);
+      }
+      
+      .form {
+        padding: 25px;
+      }
+      
+      .card_header {
+        display: flex;
+        align-items: center;
+      }
+      
+      .card svg {
+        color: #7878bd;
+        margin-bottom: 20px;
+        margin-right: 5px;
+      }
+      
+      .form_heading {
+        padding-bottom: 15px;
+        font-size: 21px;
+        color: #7089b9;
+      }
+      
+      .field {
+        padding-bottom: 5px;
+      }
+      
+      #id_gene, #id_output_type, #id_database, #id_function, #id_chromosome, #id_species, #id_start_position, #id_end_position, #id_transcript  {
+        border-radius: 5px;
+        background-color: #e9e9f7;
+        padding: 5px;
+        width: 100%;
+        color: #7a7ab3;
+        border: 1px solid #dadaf7
+      }
+      
+      .input:focus-visible {
+        outline: 1px solid #aeaed6;
+      }
+      
+      .input::placeholder {
+        color: #bcbcdf;
+      }
+      
+      label {
+        color: #B2BAC8;
+        font-size: 14px;
+        display: block;
+        padding-bottom: 4px;
+      }
+      
+      button {
+        background-color: #7089b9;
+        margin-top: 10px;
+        font-size: 14px;
+        padding: 7px 12px;
+        height: auto;
+        font-weight: 500;
+        color: white;
+        border: none;
+      }
+      
+      button:hover {
+        background-color: #5f5f9c;
+      }
+
+      .form_heading a {
+        text-decoration: none; 
+        color: #7089b9; 
+                
+    }
+</style>
+
 <script>
-        function toggleFields() {
-            var outputType = document.getElementById("id_output_type").value;
-            var genomeFields = ["genomeFields"];
-            var geneProteinFields = ["geneProteinFields"];
+  function toggleFields() {
+      var outputType = document.getElementById("id_output_type").value;
+      var genomeFields = ["genomeFields"];
+      var geneProteinFields = ["geneProteinFields"];
 
-            if (outputType === "genome") {
-                showFields(genomeFields);
-                hideFields(geneProteinFields);
-            } else if (outputType === "gene_protein") {
-                showFields(geneProteinFields);
-                hideFields(genomeFields);
-            }
-        }
+      if (outputType === "genome") {
+          showFields(genomeFields);
+          hideFields(geneProteinFields);
+      } else if (outputType === "gene_protein") {
+          showFields(geneProteinFields);
+          hideFields(genomeFields);
+      }
+  }
 
-        function showFields(fields) {
-            for (var i = 0; i < fields.length; i++) {
-                document.getElementById(fields[i]).style.display = "block";
-            }
-        }
+  function showFields(fields) {
+      for (var i = 0; i < fields.length; i++) {
+          document.getElementById(fields[i]).style.display = "block";
+      }
+  }
 
-        function hideFields(fields) {
-            for (var i = 0; i < fields.length; i++) {
-                document.getElementById(fields[i]).style.display = "none";
-            }
-        }
+  function hideFields(fields) {
+      for (var i = 0; i < fields.length; i++) {
+          document.getElementById(fields[i]).style.display = "none";
+      }
+  }
 </script>
 
-<div style="display: flex; justify-content: center; align-items: center; height: 70vh;">
-    <form method="post" action="{% url 'text_extraction' %}" style="text-align: left;">
-        <h2 class="text-center mb-4">Download </h2>
+<div class="container d-flex justify-content-center align-items-center" style="height: 90vh;">
+    <form class="form card" method="post" action="{% url 'text_extraction'  %}">
         {% csrf_token %}
+        {% if form.errors %}
+                {% for error in form.errors %}
+                    <div style="width: 100%; background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a; margin-bottom: 10px; text-align: center; word-wrap: break-word;">
+                        <strong>Error:</strong> {{ error }}
+                    </div>
+                {% endfor %}
+        {% endif %}
+
+        <div class="card_header">
+            <h1 class="form_heading">Download</h1>
+          </div>
         
-        <!-- Output Type -->
-        {{ form.output_type.label_tag }}<br>
-        {{ form.output_type }}<br>
-        
-        <!-- Genome Fields -->
-        <br>
-        {{ form.chromosome.label_tag }}<br> 
-        {{ form.chromosome }}<br>
-        {{ form.species.label_tag }}<br>
-        {{ form.species }}<br>
+        <div class="field">
+          <label>{{ form.output_type.label_tag }}</label>
+          {{ form.output_type }}
+        </div>
+        <div class="field">
+            <label>{{ form.chromosome.label_tag }}</label>
+            {{ form.chromosome }}
+        </div>
+        <div class="field">
+            <label>{{ form.species.label_tag }}</label>
+            {{ form.species }}
+        </div>
 
         <div id="genomeFields">
-            {{ form.start_position.label_tag }}<br>
-            {{ form.start_position }}<br>
-            {{ form.end_position.label_tag }}<br>
-            {{ form.end_position }}<br>
+            <div class="field">
+                <label>{{ form.start_position.label_tag }}</label>
+                {{ form.start_position }}
+            </div>
+            <div class="field">
+                <label>{{ form.end_position.label_tag }}</label>
+                {{ form.end_position }}
+            </div>
+        </div>
+        
+        <div id="geneProteinFields">
+            <div class="field">
+                <label>{{ form.gene.label_tag }}</label>
+                {{ form.gene }}
+             </div>
+            <div class="field">
+                <label>{{ form.transcript.label_tag }}</label>
+                {{ form.transcript }}
+            </div>
+            <div class="field">
+                <label>{{ form.function.label_tag }}</label>
+                {{ form.function }}
+            </div> 
         </div>
 
-        <!-- Gene/Protein Fields -->
-        <div id="geneProteinFields">
-            {{ form.gene.label_tag }} <br>
-            {{ form.gene }}<br>
-            {{ form.transcript.label_tag }} <br>
-            {{ form.transcript }}<br>
-            {{ form.function.label_tag }} <br>
-            {{ form.function }}<br>
+    
+        <div class="field">
+            <button class="button">Download</button>
         </div>
-        <br>
-        <button type="submit" class="btn btn-primary" style="background-color: #7089b9; color: white;">Download</button>
-    </form>
+      </form>
 </div>
 
 <script>
-    toggleFields();
-    document.getElementById("id_output_type").addEventListener("change", toggleFields);
+  toggleFields();
+  document.getElementById("id_output_type").addEventListener("change", toggleFields);
 </script>
+
 
 {% endblock %}

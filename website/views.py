@@ -1,5 +1,5 @@
-from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatus
-from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein, GenomeAnnotate, SequenceGenome, UserRegistrationForm, CommentForm
+from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatus, Post
+from .forms import GenomeSearchForm,Upload_data, DownloadTextForm, ProteinAnnotate, SequenceProtein, GenomeAnnotate, SequenceGenome, UserRegistrationForm, CommentForm, UpdateForm, ReplyForm, CreatePostForm
 from django.contrib.contenttypes.models import ContentType
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -31,10 +31,16 @@ from functools import wraps
 from django.shortcuts import get_object_or_404
 
 from django.core.paginator import Paginator
-
+from django.http import Http404
 
 def home(request):
-    return render(request, 'home.html')
+    posts = Post.objects.all()
+    form = CreatePostForm
+    context = {
+        'forum_post': posts,
+        'form': form,
+    }
+    return render(request, 'home.html', context)
 
 def user_registration_login_status(view_func):
     @wraps(view_func)
@@ -99,6 +105,7 @@ def register_view(request):
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, request.POST)
+        print(form)
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
@@ -127,6 +134,45 @@ def logout_view(request):
         logout(request)
         return redirect('/')
 
+@login_required
+def update_profile(request):
+    context = {}
+    user = request.user
+
+    if request.method == "POST":
+        form = UpdateForm(request.POST,instance=request.user)
+        
+        if form.is_valid():
+            update_profile_instance = form.save(commit=False)
+            update_profile_instance.user = user
+            update_profile_instance.save()
+
+            context = {
+                'form': form,
+                'success': 'Your profile has been updated successfully !'
+            }
+   
+            return render (request, "update_profile.html", context)
+        else:
+            print(form)
+            context = {
+                'form': form,
+                'error': form.errors
+            }
+            return render (request, "update_profile.html", context)
+    else:
+        form = UpdateForm(instance=request.user)
+
+    context = {
+        'form': form
+    }
+
+    return render(request, "update_profile.html", context)
+
+
+
+
+
 def search_results(request):
     if request.method == 'GET' and request.GET:
         form = GenomeSearchForm(request.GET)
@@ -136,7 +182,7 @@ def search_results(request):
             chromosome = form.cleaned_data['chromosome']
             output_type = form.cleaned_data['output_type']
             database = form.cleaned_data['database']
-
+            
             final_result = []
 
             if database == "BactaHub":
@@ -152,7 +198,7 @@ def search_results(request):
                     gene = form.cleaned_data['gene']
                     transcript = form.cleaned_data['transcript']
                     function = form.cleaned_data['function']
-                 
+                    print(gene)
                     if validate(sequence_query,'dna'):
                         sequence_type = 'cds'        
                     else:
@@ -168,6 +214,8 @@ def search_results(request):
                                         Q(geneprotein__genome__annotationgenome__species__contains=species)
                                         ).only('geneprotein__type','geneprotein__accession_number','geneprotein__sequence','geneprotein__genome__id','geneprotein__genome__annotationgenome__species')       
                 
+                print(results)
+
                 special_query = False
 
                 if re.search('%',sequence_query):
@@ -227,6 +275,7 @@ def search_results(request):
                         
                                 final_result.append(result_dic)
 
+                print(final_result)
                 p = Paginator(final_result,15)
                 page = request.GET.get('page')
                 sequences = p.get_page(page)
@@ -423,10 +472,10 @@ def validator_view(request):
 
 
     created_genomes = Genome.objects.filter(Q(is_validated=False) &
-                                            Q(annotationgenome__isnull=True)).defer('sequence')
+                                            Q(annotationgenome__isnull=True)).defer('sequence')[:100]
 
     created_proteins = GeneProtein.objects.filter(Q(is_validated=False) &
-                                                        Q(annotationprotein__isnull=True)).defer('sequence')
+                                                        Q(annotationprotein__isnull=True)).defer('sequence')[:100]
     
     unvalidated_genomes = AnnotationGenome.objects.select_related('genome').filter(genome__is_validated=False, is_annotated=True)
                                            
@@ -454,16 +503,18 @@ def validate_include_database(request, sequence_type=None, id_get_sequence=None)
             id_sequence = request.session.get('id_sequence')
             sequence_type = request.session.get('type')
             id_get_sequence = request.session.get('id_annotate')
-            print(request.POST)
+            
 
             if sequence_type == "genome":
-                    form_annotate = GenomeAnnotate(request.POST, current_user=request.user)
-                    form_sequence = SequenceGenome(request.POST, current_user=request.user)
+                    form_annotate = GenomeAnnotate(request.POST, instance = AnnotationGenome.objects.get(pk = id_get_sequence), current_user = request.user)
+                    form_sequence = SequenceGenome(request.POST, instance = Genome.objects.get(pk = id_sequence), current_user = request.user)
             else:
-                    form_annotate = ProteinAnnotate(request.POST, current_user=request.user)
-                    form_sequence = SequenceProtein(request.POST, current_user=request.user)
+                    form_annotate = ProteinAnnotate(request.POST, instance = AnnotationProtein.objects.get(pk = id_get_sequence), current_user = request.user)
+                    form_sequence = SequenceProtein(request.POST, instance = GeneProtein.objects.get(pk = id_get_sequence), current_user = request.user)
 
             annotation_status = CommentForm(request.POST)
+
+
 
             if form_annotate.is_valid() and form_sequence.is_valid() and annotation_status.is_valid():  
                 
@@ -474,7 +525,6 @@ def validate_include_database(request, sequence_type=None, id_get_sequence=None)
                         validate_sequence = Genome.objects.get(pk=id_sequence)
                         sequence = form_sequence.cleaned_data['chromosome']
                         type_object = ContentType.objects.get_for_model(AnnotationGenome)
-                        annotation = AnnotationGenome.objects.get(pk=id_get_sequence)
                         
                 else:   
                         type_object = ContentType.objects.get_for_model(AnnotationProtein)
@@ -482,28 +532,40 @@ def validate_include_database(request, sequence_type=None, id_get_sequence=None)
                         validate_sequence = GeneProtein.objects.get(pk=id_sequence)
                         sequence = form_sequence.cleaned_data['accession_number']
 
-                if status_of_annotation == "validated":       
-                    validate_sequence.is_validated = True
-                    validate_sequence.save()
+                if status_of_annotation == "validated": 
+                    sequence_instance = form_sequence.save(commit=False)      
+                    sequence_instance.is_validated = True
+                    sequence_instance.save()
                 
                 else:
-                    annotation.is_annotated = False
-                    annotation.save()
+                    annotate_instance = form_annotate.save(commit=False)
+                    annotate_instance.is_annotated = False
+                    annotate_instance.save()
 
                 if comment_for_annotator:
                     validator = Profile.objects.get(pk = request.user.id)
 
-                    AnnotationStatus.objects.create(content_type=type_object,
+                    annotation_status, created = AnnotationStatus.objects.get_or_create(content_type=type_object,
                                                             object_id = id_get_sequence,
-                                                            validator = validator,
-                                                            comment = comment_for_annotator,
-                                                            status = status_of_annotation)
+                                                            defaults={
+                                                                'validator': validator,
+                                                                'comment': comment_for_annotator,
+                                                                'status': status_of_annotation
+                                                            })
+                    
+                    if not created:
+                        annotation_status.validator = validator
+                        annotation_status.comment = comment_for_annotator
+                        annotation_status.status = status_of_annotation
+                        annotation_status.save()
+                                                           
 
                 messages.success(request, f'Sequence "{sequence}" has been {status_of_annotation}')
                 return HttpResponseRedirect(reverse('validator_view'))
 
             else:
                 return render(request,'Validator/validate_sequences.html',{'form': form_annotate , 'form2': form_sequence, 'comment': annotation_status})
+            
     if request.method == 'GET':
         print(sequence_type)
         if sequence_type == "genome":
@@ -527,36 +589,34 @@ def validate_include_database(request, sequence_type=None, id_get_sequence=None)
 
 @login_required(login_url="/login")
 @user_is_validator
-def assigned_annotators(request):
+def assigned_annotators(request, type_of_sequence):
     if request.method == 'POST':
 
-        print(request.POST)
-   
-        anno_id_protein = request.POST.getlist('annotation_id_protein')
-        anno_id_genome = request.POST.getlist('annotation_id_genome')
+        anno_id_annotator = request.POST['annotator']
+        anno_id_sequence = request.POST['annotation_id']
 
-
-        annotator_protein = request.POST.getlist('annotator_protein')
-        annotator_genome = request.POST.getlist('annotator_genome')
         
-        if len(anno_id_protein) != 0:
-            for i in range(len(anno_id_protein)):
-                new_annotation_protein = AnnotationProtein.objects.create(
-                    annotator_id=annotator_protein[i],
-                    geneprotein_id=anno_id_protein[i]
+        if anno_id_annotator != '':
+            if type_of_sequence == 'genome':
+               sequence_annotation = AnnotationGenome.objects.create(
+                    annotator_id=anno_id_annotator,
+                    genome_id=anno_id_sequence
                 )
-                new_annotation_protein.save()
-        if len(anno_id_genome) != 0:
-            for i in range(len(anno_id_genome)):
-                new_annotation_genome = AnnotationGenome.objects.create(
-                    annotator_id=annotator_genome[i],
-                    genome_id=anno_id_genome[i]
+               message = f'Genome sequence "{sequence_annotation.genome.chromosome}" has been assigned successfully to {sequence_annotation.annotator.username}'
+            else:
+                sequence_annotation = AnnotationProtein.objects.create(
+                    annotator_id=anno_id_annotator,
+                    geneprotein_id=anno_id_sequence
                 )
-                new_annotation_genome.save()
+                message = f'CDS/PEP sequence "{sequence_annotation.geneprotein.accession_number}" has been assigned successfully to {sequence_annotation.annotator.username}'
 
-        return render(request, 'Validator/validate_annotators.html')
+        else:
+            raise Http404("The requested resource was not found.")
+            
+        messages.success(request, message)
+        return HttpResponseRedirect(reverse('validator_view'))
 
-    return redirect('home')
+    return validator_view(request)
 
 @login_required(login_url="/login")
 @user_is_validator
@@ -581,13 +641,14 @@ def delete_sequence_from_database(request,type_of_sequence,id):
 def annotator_view(request):
     annotator = request.user.id
     unannotated_genomes = AnnotationGenome.objects.filter(is_annotated=False, 
-                                                          annotator=annotator,
-                                                          genome__sequence__isnull=False)
+                                                          annotator=annotator)
+    
     unannotated_proteins= AnnotationProtein.objects.filter(is_annotated=False, annotator=annotator)[:6]
 
     status_genome = AnnotationGenome.objects.select_related('genome').filter(annotator_id = request.user.id)
     status_protein = AnnotationProtein.objects.select_related('geneprotein').filter(annotator_id = request.user.id)
-                                                           
+
+    print(unannotated_genomes)                                                 
     context = {
         'protein_annotations': unannotated_proteins,
         'genome_annotations': unannotated_genomes,
@@ -768,11 +829,11 @@ def text_extraction(request, sequence_type = None, id_sequence = None):
     
                 if output_type == 'genome':
                     results = AnnotationGenome.objects.select_related('genome').filter(Q(genome__is_validated = True) &
-                                                                                    (Q(genome__pk = id_sequence)))
+                                                                                    (Q(genome__pk = id_sequence)))[:20]
                 else:
                     results = AnnotationProtein.objects.select_related('geneprotein__genome__annotationgenome').filter(
                                                                                 Q(geneprotein__is_validated=True) &
-                                                                                Q(geneprotein__pk = id_sequence))
+                                                                                Q(geneprotein__pk = id_sequence))[:100]
             
                 lines = []
             
@@ -784,7 +845,7 @@ def text_extraction(request, sequence_type = None, id_sequence = None):
                             txt_title = sequence_type.genome.chromosome
                             extraction = sequence_type.genome.sequence
                             species = sequence_type.species
-                            lines.append(f'>{species};{sequence_type.genome.chromosome};{sequence_type.genome.start};{sequence_type.genome.end}\n')
+                            lines.append(f'>{species};chromosome;{sequence_type.genome.chromosome};{sequence_type.genome.start}:{sequence_type.genome.end}\n')
                             
                             for i in range(0, len(extraction), 70):
                                 lines.append(f'{extraction[i:i+70]}\n')
@@ -805,7 +866,7 @@ def text_extraction(request, sequence_type = None, id_sequence = None):
 
                     
                 response = StreamingHttpResponse((line for line in lines), content_type='text/plain')
-                response['Content-Disposition'] = f'attachment; filename={species}_{output_type}_{txt_title}.txt'
+                response['Content-Disposition'] = f'attachment; filename={species}_{output_type}_{txt_title}.fa'
                 return response
             
     else:
@@ -893,3 +954,60 @@ def blast_search(request,sequence,program,database):
     except Exception as e:
         print("error 4")
         return "An error occurred"
+
+## FORUM ##
+    
+def post(request, post_url):
+    post = get_object_or_404(Post, url = post_url)
+    forum = Post.objects.all()
+
+    contentype = ContentType.objects.get_for_model(Post)
+                        
+    comments = AnnotationStatus.objects.filter(
+                                 content_type=contentype,
+                                 object_id = post.id).all()
+    form = ReplyForm
+    print(post_url)
+    context = {
+        'forum_post': post,
+        'comments': comments,
+        'forum': forum,
+        'form': form
+    }
+    return render(request, "forums.html", context)
+
+def post_new_comment(request,post_url,post_id):
+    user = request.user
+    if request.method == "POST":
+        form = ReplyForm(request.POST)
+
+        if form.is_valid():
+            comment = request.POST['comment']
+            contentype = ContentType.objects.get_for_model(Post)
+            AnnotationStatus.objects.create(content_type=contentype,
+                                               object_id = post_id,
+                                               validator = user,
+                                               comment = comment)
+        
+            return post(request,post_url)
+
+def create_new_post(request):
+    user = request.user
+    print(user)
+    if request.method == "POST":
+        form = CreatePostForm(request.POST)
+        print(form.is_valid())
+        if form.is_valid():
+            new_post = form.save(commit=False)
+            new_post.author = user
+            new_post.save()
+
+            return home(request)
+        
+        else:
+            context = {
+                'form': form
+            }
+            return render(request, 'home.html', context)
+    
+    return render(request, 'home.html')

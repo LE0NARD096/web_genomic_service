@@ -27,6 +27,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('website.urls')),
     path('blast_results/', blast_search, name='blast_results'),
+    path('tinymce/', include('tinymce.urls')),
     # ... other url patterns ...
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

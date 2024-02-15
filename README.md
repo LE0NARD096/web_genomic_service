@@ -5,6 +5,24 @@
 To create the correct work environment for this project, the needed installations are in the file env_install.sh :  
 `source env_install.sh`
 
+## Django command
+
+Populate the database with fasta files and users
+
+**python3 manage.py import-my-data file/path/**
+
+Options
+
+**--annotated**
+
+Takes into account the fully annotated fasta files
+
+**--populatewithusers**
+
+Includes in the database some test users for the site
+
+
+
 ## Git command 
 
 Cloner un repository git en local : **git clone url**

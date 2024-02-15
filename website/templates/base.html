@@ -117,9 +117,15 @@
             <div>
                 <ul class="navbar-nav">
                     {% if request.user.is_authenticated %}
-                    <span class="navbar-text">Logged in as {{user.username}} | </span>
+                    
+                    <span class="navbar-text">Logged in as {{user.username}}</span>
+
+                    <a class="nav-link" href="/update_profile">
+                        <img  href="/update_profile" src="{% static 'profile.png' %}" style="height:30px">
+                    </a>
+
                     <li class="nav-item">
-                        <a class="nav-link" href="/logout">Logout</a>
+                        <a class="nav-link" href="/logout">| Logout</a>
                     </li>
                     {% else %}
                     <li class="nav-item">

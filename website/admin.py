@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatus
+from .models import Profile, Genome, GeneProtein, AnnotationGenome, AnnotationProtein, AnnotationStatus, Post
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
@@ -24,8 +24,6 @@ class GenomeAdmin(admin.ModelAdmin):
         return None
 
     species.short_description = 'species'  
-
-
 
 @admin.register(AnnotationGenome)
 class AnnotationGenomeAdmin(admin.ModelAdmin):
@@ -54,3 +52,4 @@ class AnnotationProteinAdmin(admin.ModelAdmin):
 
 
 admin.site.register(AnnotationStatus)
+admin.site.register(Post)

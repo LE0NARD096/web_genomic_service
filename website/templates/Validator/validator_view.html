@@ -26,11 +26,23 @@
         display: flex;
         height: 100vh; 
     }
+
     .task-box nav ul {
             overflow: hidden;
             overflow-y: scroll;
     }
+  
+    .no-job-message {
+        text-align: center;
+        font-size: 18px;
+        color: #555;
+        padding: 20px;
+        background-color: #eee;
+    }
 
+    button.btn.btn-primary {
+        background-color: #7089b9;        
+    }
 </style>
 
 <script>
@@ -108,8 +120,6 @@
     </div>
     
     <div class="container">
-            <form method="post" action="{% url 'validate_annotators' %}">
-                {% csrf_token %}
                 <h3>Genome</h3>
                 <div style=" height: 350px;">
                     <table class="table">
@@ -117,25 +127,38 @@
                                 <tr>
                                     <th style="width: 300px;">Chromosome</th>
                                     <th>Select Annotator</th>
+                                    <th>Action</th>
                                 </tr>
                                     
-                            {% if created_genomes %}
                                 <nav>
                                 {% for genome in created_genomes %}
+                                    <form method="post" action="{% url 'validate_annotators' 'genome' %}">
+                                    {% csrf_token %}
                                     <tr>
                                         <td><strong>{{ genome.chromosome}}</strong></td>
                                         <td>
-                                            <select name="annotator_genome" id="annotator_{{ annotation.id }}">
-                                                {% for annotator in annotators %}
-                                                    <option value="{{ annotator.id }}">{{ annotator.username }}</option>
-                                                {% endfor %}
-                                            </select>
-                                            <input type="hidden" name="annotation_id_genome" value="{{ genome.id }}">
+                                            <select name="annotator" id="{{ annotation.id }}" class="form-select form-select-sm" aria-label=".form-select-sm example">
+                                                    <option value="none" selected  >-----------------</option>
+                                                    {% for annotator in annotators %}
+                                                        <option value="{{ annotator.id }}">{{ annotator.username }}</option>
+                                                    {% endfor %}
+                                                        
+                                                    </select>
+                                                    <input type="hidden" name="annotation_id" value="{{ genome.id }}">
+        
+                                                </td>
+                                        <td><button type="submit" class="btn btn-primary">Assign</button></td>
+                                
+                                    </tr>
+                                    </form>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="no-job-message">
+                                            <p>No job for you</p>
                                         </td>
                                     </tr>
                                 {% endfor %}
                                 </nav>
-                            {% endif %}
                         </tbody>
                     </table>     
                 </div>
@@ -146,33 +169,50 @@
                             <tr>
                                 <th style="width: 300px;">Accession Number</th>
                                 <th>Select Annotator</th>
+                                <th>Action</th>
                             </tr>
-                            {% if created_proteins %}
+                            
+                            <nav>
                                 {% for protein in created_proteins %}
+                                    <form method="post" action="{% url 'validate_annotators' 'cds_pep' %}">
+                                    {% csrf_token %}
+                                        <tr>
+                                            <td><strong>{{ protein.accession_number }}</strong></td>
+                                            <td>
+                                                <select name="annotator" id="{{ annotation.id }}" class="form-select form-select-sm" aria-label=".form-select-sm example">
+                                                    <option value="none" selected  >-----------------</option>
+                                                    {% for annotator in annotators %}
+                                                        <option value="{{ annotator.id }}">{{ annotator.username }}</option>
+                                                    {% endfor %}
+                                                    
+                                                </select>
+                                                <input type="hidden" name="annotation_id" value="{{ protein.id }}">
+
+                                            </td>
+                                            <td><button type="submit" class="btn btn-primary">Assign</button></td>
+                                        </tr>
+                                    </form>
+                                {% empty %}
                                     <tr>
-                                        <td><strong>{{ protein.accession_number }}</strong></td>
-                                        <td>
-                                            <select name="annotator_protein" id="annotator_{{ annotation.id }}">
-                                                {% for annotator in annotators %}
-                                                    <option value="{{ annotator.id }}">{{ annotator.username }}</option>
-                                                {% endfor %}
-                                            </select>
-                                            <input type="hidden" name="annotation_id_protein" value="{{ protein.id }}">
+                                        <td colspan="3" class="no-job-message">
+                                            <p>No job for you</p>
                                         </td>
                                     </tr>
                                 {% endfor %}
-                            {% endif %}
+                                </nav>
                         </tbody>
                     </table>
                 </div>
-                <br>
-                <button  type="submit">Confirm choices</button>
             </div>
-        </form>
     </div>
 
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('{{ annotation.id }}').value = 'none';
+    });
+</script>
 
 {% endblock %}
 

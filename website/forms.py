@@ -1,6 +1,6 @@
 from typing import Any
 from django import forms
-from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein, Genome, AnnotationStatus
+from .models import Profile, AnnotationProtein, AnnotationGenome, GeneProtein, Genome, AnnotationStatus, Post
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from Bio import SeqIO
@@ -8,7 +8,7 @@ from io import StringIO
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 import re
-
+from tinymce.widgets import TinyMCE
 
 class CommentForm(forms.Form):
     
@@ -27,6 +27,12 @@ class CommentForm(forms.Form):
         self.fields["comment"].label = ''
    
 
+class UpdateForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['username','first_name', 'last_name', 'phoneNumber']
+    
+
 class GenomeSearchForm(forms.Form):
     output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')])
     sequence = forms.CharField(label='Sequence:', required=True,widget=forms.Textarea)
@@ -42,7 +48,7 @@ class GenomeSearchForm(forms.Form):
         sequence = self.cleaned_data.get('sequence')
         type_sequence = self.cleaned_data.get('output_type')
 
-        if type_sequence == 'genome' and re.fullmatch(r'^[ACDEFGHIKLMNPQRSTVWY]*$', sequence):
+        if type_sequence == 'genome' and re.fullmatch(r'^[ATGCN]*$', sequence) is None:
            raise ValidationError(("You can't search a protein fragment in a genome"), code='invalid')
 
         if len(sequence) < 3:
@@ -75,7 +81,7 @@ class ProteinAnnotate(forms.ModelForm):
         self.current_user = kwargs.pop('current_user', None)
         super(ProteinAnnotate, self).__init__(*args, **kwargs)
 
-        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+        if self.current_user.role == 'validator':
             
             for field_name, field in self.fields.items():
                 field.widget.attrs['readonly'] = True
@@ -92,7 +98,7 @@ class SequenceProtein(forms.ModelForm):
 
         self.fields["sequence"].label = ''
 
-        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+        if self.current_user.role == 'validator':
             self.fields['genome'].widget.attrs['disabled'] = True
             self.fields['genome'].required = False
             for field_name, field in self.fields.items():
@@ -110,7 +116,7 @@ class GenomeAnnotate(forms.ModelForm):
         super(GenomeAnnotate, self).__init__(*args, **kwargs)
 
 
-        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+        if self.current_user.role == 'validator':
             for field_name, field in self.fields.items():
                 field.widget.attrs['readonly'] = True
 
@@ -124,7 +130,7 @@ class SequenceGenome(forms.ModelForm):
         self.current_user = kwargs.pop('current_user', None)
         super(SequenceGenome, self).__init__(*args, **kwargs)
 
-        if self.current_user.role == 'validator' or self.current_user.role == 'admin' :
+        if self.current_user.role == 'validator':
             for field_name, field in self.fields.items():
                 field.widget.attrs['readonly'] = True
     
@@ -172,3 +178,14 @@ class UserRegistrationForm(UserCreationForm):
     class Meta:
         model = Profile
         fields = ['username','email', 'first_name', 'last_name', 'phone_number', 'role', 'password1', 'password2']
+
+
+
+class ReplyForm(forms.Form):
+    comment = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Post a comment'}))
+
+class CreatePostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title','content']
+        widgets = {'content': TinyMCE(mce_attrs={'height': 280}), 'title': forms.TextInput(attrs={'placeholder': 'Title'})}

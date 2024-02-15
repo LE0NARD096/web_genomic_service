@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-from pathlib import Path
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'website',
+    'tinymce',
 ]
 
 MIDDLEWARE = [
@@ -135,3 +135,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = None
 AUTH_USER_MODEL = "website.Profile" 
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
+
+PHONENUMBER_DEFAULT_REGION = 'FR'
+
+
