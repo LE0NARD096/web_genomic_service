@@ -108,7 +108,7 @@ def register_view(request):
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, request.POST)
-        print(form)
+
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
@@ -120,7 +120,7 @@ def login_view(request):
                     next_url = request.POST.get('next', 'home')
                     if not next_url:
                         next_url = 'home'
-                    print(next_url)
+
                     return redirect(next_url)
                 else:
                     messages.error(request, 'Your account is not approved yet. Please wait for approval.')
@@ -158,7 +158,7 @@ def update_profile(request):
 
             return render(request, "update_profile.html", context)
         else:
-            print(form)
+
             context = {
                 'form': form,
                 'error': form.errors
@@ -565,7 +565,7 @@ def validate_include_database(request, sequence_type=None, id_get_sequence=None)
             return render(request, 'Validator/validate_sequences.html', {'form': form_annotate, 'form2': form_sequence, 'comment': annotation_status})
 
     if request.method == 'GET':
-        print(sequence_type)
+
         if sequence_type == "genome":
             validate_sequence = get_object_or_404(AnnotationGenome, pk=id_get_sequence)
             validate_sequence.genome.is_validated = True
@@ -658,7 +658,7 @@ def annotator_view(request):
 @is_not_user
 def sequence_view(request, type_of_sequence, id):
     request.session['type'] = type_of_sequence
-    print('hey')
+
     if type_of_sequence == "genome":
         genome_annotate_instance = AnnotationGenome.objects.get(pk=id)
         sequence_genome_instance = Genome.objects.get(pk=genome_annotate_instance.genome.id)
@@ -701,8 +701,6 @@ def save_annotation(request):
         else:
             form_annotate = ProteinAnnotate(request.POST, current_user=request.user)
             form_sequence = SequenceProtein(request.POST, current_user=request.user)
-
-        print(form_sequence)
 
         if form_annotate.is_valid() and form_sequence.is_valid():
 
@@ -925,15 +923,8 @@ def blast_search(request, sequence, program, database):
         result_handle = NCBIWWW.qblast(program=program, database=database, sequence=sequence, descriptions=50, hitlist_size=25)
         blast_results = SearchIO.read(result_handle, "blast-xml")
         context = {'blast_results': blast_results}
-        print(blast_results)
 
-        with open(blast_results, "r") as temp_file:
-            response = HttpResponse(temp_file.read(), content_type="text/plain")
-
-        # Set the Content-Disposition header to prompt the user to download the file
-        response['Content-Disposition'] = 'attachment; filename="blast_results.txt"'
-
-        return response
+        return render(request, 'Search/blast_results.html', context)
 
     except Exception as e:
         return f"An error occurred {e}"
@@ -950,7 +941,7 @@ def post(request, post_url):
     comments = AnnotationStatus.objects.filter(content_type=contentype,
                                                object_id=post.id).all()
     form = ReplyForm
-    print(post_url)
+
     context = {
         'forum_post': post,
         'comments': comments,
@@ -980,10 +971,10 @@ def post_new_comment(request, post_url, post_id):
 @login_required(login_url="/login")
 def create_new_post(request):
     user = request.user
-    print(user)
+
     if request.method == "POST":
         form = CreatePostForm(request.POST)
-        print(form.is_valid())
+ 
         if form.is_valid():
             new_post = form.save(commit=False)
             new_post.author = user
