@@ -1,10 +1,9 @@
-<!-- blast_results.html -->
-<html>
-<head>
-    <title>BLAST Results</title>
-</head>
-<body>
-    <h1>BLAST Results</h1>
-    <!-- Display blast_results here -->
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Home page{% endblock %}
+{% block content %}
+
+<div>
+{{blast_results}}
+</div>
+
+{% endblock %}

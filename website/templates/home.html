@@ -95,7 +95,7 @@
 <div class="container">   
       <div>
       <h1 class="centered">Welcome {{ request.user.username }} to BactAHub</h1>
-      <p class="text-middle centered">BactAHub allows for the annotation of bacterial genomes with an efficient visualization of gene localization. It facilitates the selective extraction of annotated data, provides access to sequence alignment tools via external APIs such as Blast, and encourages collaboration between annotators and validators to ensure the quality of generated information.</p>
+      <p style="text-align: justify;" class="text-middle centered">This website was created to facilitate the exchange of information in the biological domain between three different figures who approach the world of gene annotations: users, annotators and validators. The application allows people with biological backgrounds to annotate bacterial genomes and specific genes or proteins.</p>
       </div>
       
       <div class="wrap">
@@ -177,10 +177,18 @@
 
   {% else %}
     <h1 class="centered">Welcome to BactAHub</h1>
-    <p class="centered">The home page of our application for annotating and analyzing bacterial genomes.</p>
     <div class="container">
-      <p class="text-middle centered">BactAHub allows for the annotation of bacterial genomes with an efficient visualization of gene localization. It facilitates the selective extraction of annotated data, provides access to sequence alignment tools via external APIs such as Blast, and encourages collaboration between annotators and validators to ensure the quality of generated information.</p>
+      <p style="text-align: justify;" class="text-middle centered">This website was created to facilitate the exchange of information in the biological domain between three different figures who approach the world of gene annotations: users, annotators and validators. The application allows people with biological backgrounds to annotate bacterial genomes and specific genes or proteins.</p>
     </div>
+    <div class="wrap">
+      <div class="pane">
+          <h2>Search</h2>
+          <a href="/search">
+            <img  class = "choice"  src="{% static 'search.png' %}" alt="Search Image">
+        </a>
+        
+      </div>
+  </div>
   {% endif %}
  
 {% endblock %}
