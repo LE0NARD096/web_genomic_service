@@ -7,7 +7,7 @@
     .card {
         width: 600px;
         height: 350px;
-        margin-top: 174px;
+        margin-top: 10px;
         background: #F4F6FB;
         border: 1px solid white;
         box-shadow: 10px 10px 64px 0px rgba(180, 180, 207, 0.75);
@@ -64,7 +64,7 @@
         padding-bottom: 4px;
       }
       
-      button {
+      button.upload {
         background-color: #7089b9;
         margin-top: 10px;
         font-size: 14px;
@@ -75,7 +75,7 @@
         border: none;
       }
       
-      button:hover {
+      button.upload:hover {
         background-color: #5f5f9c;
       }
 
@@ -86,15 +86,20 @@
     }
 </style>
 
-<div class="container d-flex justify-content-center align-items-center" style="height:70vh;">
-    <form class="form card" method="post" action="{% url 'upload_file' %}?next={{ request.GET.next }}">
+<div class="container d-flex justify-content-center align-items-center" style="height:90vh; flex-direction: column;">
+    {% if error_message %}
+    <div style="width: 600px; background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a;  text-align: center; word-wrap: break-word;">
+        <strong>Error:</strong> {{ error_message }}
+    </div>
+    {% endif %}
+    {% if success %}
+      <div style="width: 600px; background-color: #d4edda; padding: 10px; border: 1px solid #c3e6cb; text-align: center; word-wrap: break-word;">
+          <strong>Success: </strong> {{ success }}
+      </div>
+    {% endif %}
+    <form class="form card" method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data">
         {% csrf_token %}
-        {% if error_message %}
-                    <div style="width: 100%; background-color: #ffe1e1; padding: 10px; border: 1px solid #ff5a5a; margin-bottom: 10px; text-align: center; word-wrap: break-word;">
-                        <strong>Error:</strong> {{ error_message }}
-                    </div>
-        {% endif %}
-
+        
         <div class="card_header">
             <h1 class="form_heading">Upload</h1>
           </div>
@@ -112,7 +117,7 @@
             {{ form.annotated}}
         </div>    
                 <div class="field">
-                <button class="button">Upload</button>
+                <button class="upload">Upload</button>
                 </div>
       </form>
 </div>

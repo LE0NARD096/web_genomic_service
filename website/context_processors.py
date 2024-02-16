@@ -4,6 +4,7 @@ from django.db.models import Q
 def notifications(request):
     notification_validator = 0
     notification_annotator = 0
+    notifications_sum = 0
 
     if request.user.is_authenticated:
         if request.user.role == "validator" or request.user.is_superuser:
@@ -18,6 +19,8 @@ def notifications(request):
                 notification_validator = "100+"
             else:
                 notification_validator = str(notification_number)
+            
+            notifications_sum += notification_number
 
         if request.user.role == "annotator" or request.user.is_superuser:
             annotator = Profile.objects.get(pk=request.user.id)
@@ -29,7 +32,11 @@ def notifications(request):
                 notification_annotator = "100+"
             else:
                 notification_annotator = str(notification_number)
+            
+            notifications_sum += notification_number
+
     return {
         'notifications_validator': notification_validator,
-        'notifications_annotator': notification_annotator
+        'notifications_annotator': notification_annotator,
+        'notification_admin': notifications_sum,
     }

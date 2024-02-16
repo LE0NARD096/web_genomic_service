@@ -33,7 +33,7 @@
         font-size: larger; 
     }
 
-      img{
+      img.choice{
         max-width: 80%;
       }
       
@@ -75,102 +75,105 @@
   margin-left: 20px;       
 }
 
-.spacer {
-  margin-bottom: 50px; 
-}
+    .spacer {
+      margin-bottom: 50px; 
+    }
 
-  #id_title {
-    width: 100%;
-  }
+    #id_title {
+      width: 100%;
+    }
+
+    div.card{
+      height:40px;
+    }
     
   </style>
 
 
 
   {% if request.user.is_authenticated %}
-    
-<div class="container">
-    <div>
-    <h1 class="centered">Welcome {{ request.user.username }} to BactAHub</h1>
-    <p class="text-middle centered">BactAHub allows for the annotation of bacterial genomes with an efficient visualization of gene localization. It facilitates the selective extraction of annotated data, provides access to sequence alignment tools via external APIs such as Blast, and encourages collaboration between annotators and validators to ensure the quality of generated information.</p>
-    </div>
-    
-    <div class="wrap">
-        <div class="pane">
-            <h2>Search</h2>
-            <a href="/search">
-              <img src="{% static 'search.png' %}" alt="Search Image">
-          </a>
-          
-        </div>
-        <div class="pane">
-            <h2>Upload</h2>
-          
-            <a href="/upload">
-              <img src="{% static 'upload.png' %}" alt="Upload Image">
-          </a>
-
-        </div>
-        <div class="pane">
-          <h2>Download</h2>
-        
-          <a href="/text_extraction">
-            <img src="{% static 'download.png' %}" alt="Download Image">
-        </a>
-
+<div class="container">   
+      <div>
+      <h1 class="centered">Welcome {{ request.user.username }} to BactAHub</h1>
+      <p class="text-middle centered">BactAHub allows for the annotation of bacterial genomes with an efficient visualization of gene localization. It facilitates the selective extraction of annotated data, provides access to sequence alignment tools via external APIs such as Blast, and encourages collaboration between annotators and validators to ensure the quality of generated information.</p>
       </div>
- 
-    </div>
-    <div class="spacer"></div>
-    <div style = "height: 100px" class="col-md-12 col-12 col-sm-12">
-      <div class="card">
-      <div style = "background-color: #e9e9f7;" class="card-header text-center">
-          <h4>Forums</h4>
-      </div>
-     
-      <div class="card-body ">
-              <div class="table-responsive">
-                  <table class="table table-striped">
-                      <tbody>
-                          <tr>
-                              <th>Title</th>
-                              <th>Author</th>
-                              <th>Publication time</th>
-                              <th style="max-width: 70px;"> Replies</th>
-                              <th>Action</th>
-                          </tr>
-                          <nav>
-                              {% for forums in forum_post %}
-                              <tr>
-                                  <td>{{ forums.title }}</td>
-                                  <td>{{ forums.author }}</td>
-                                  <td>{{ forums.publication_date }}</td>
-                                  <td style="max-width: 10px;">{{ forums.comments.count }}</td>
-                                  <td style = "text-align: center; vertical-align: middle;" >
-                                  <a href = " {% url 'post_url' forums.url %}"class="btn btn-primary btn-action" >Visit</a>
-                                  </td>
-                              </tr>
-                              {% endfor %}
-                          </nav>
-                      </tbody>           
-                  </table>
-              </div>
+      
+      <div class="wrap">
+          <div class="pane">
+              <h2>Search</h2>
+              <a href="/search">
+                <img  class = "choice"  src="{% static 'search.png' %}" alt="Search Image">
+            </a>
+            
           </div>
-      </div>
-  </div> 
-  <div style= " position:absolute; background-color:  #e9e9f7; top: 390px; left: 60px; bottom: 400px; width: 400px; height: 450px;" class="card-footer">
-    <h4>Create a new post</h4>
-    <form method="post" action="{% url 'create_new_post' %}" >
-        {% csrf_token %}
-        {{form.title}}<br>
-        <br>
-        {{form.content|safe}}<br>
-        {{form.media}}
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-</div>
-</div>
+          <div class="pane">
+              <h2>Upload</h2>
+            
+              <a href="/upload">
+                <img class = "choice" src="{% static 'upload.png' %}" alt="Upload Image">
+            </a>
 
+          </div>
+          <div class="pane">
+            <h2>Download</h2>
+          
+            <a href="/text_extraction">
+              <img class = "choice"  src="{% static 'download.png' %}" alt="Download Image">
+          </a>
+
+        </div>
+  
+      </div>
+      <div class="spacer"></div>
+      <div style = "height: 100px" class="col-md-12 col-12 col-sm-12">
+        <div class="card">
+        <div style = "background-color: #e9e9f7;" class="card-header text-center">
+            <h4>Forums</h4>
+        </div>
+      
+        <div class="card-body ">
+                <div class="table-responsive"  style="max-height: 250px; overflow-y: auto;">
+                    <table class="table table-striped">
+                        <tbody>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Publication time</th>
+                                <th style="max-width: 70px;"> Replies</th>
+                                <th>Action</th>
+                            </tr>
+                            <nav>
+                                {% for forums in forum_post %}
+                                <tr>
+                                    <td>{{ forums.title }}</td>
+                                    <td>{{ forums.author }}</td>
+                                    <td>{{ forums.publication_date }}</td>
+                                    <td style="max-width: 10px;">{{ forums.comments.count }}</td>
+                                    <td style = "text-align: center; vertical-align: middle;" >
+                                    <a href = " {% url 'post_url' forums.url %}"class="btn btn-primary btn-action" >Visit</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </nav>
+                        </tbody>           
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div> 
+    <div style= " position:absolute; background-color:  #e9e9f7; top: 390px; left: 25px; bottom: 400px; width: 400px; height: 525px;" class="card-footer">
+      <h4>Create a new post</h4>
+      <form method="post" action="{% url 'create_new_post' %}" >
+          {% csrf_token %}
+          {{form.title}}<br>
+          <br>
+          {{form.content|safe}}<br>
+          {{form.media}}
+          <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+  </div>
+
+</div>
 
   {% else %}
     <h1 class="centered">Welcome to BactAHub</h1>

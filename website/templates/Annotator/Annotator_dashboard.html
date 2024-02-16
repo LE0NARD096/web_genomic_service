@@ -31,6 +31,11 @@
             overflow-y: scroll;
     }
 
+    .table-striped>tbody>tr:nth-child(odd)>td, 
+    .table-striped>tbody>tr:nth-child(odd)>th {
+     background-color:  #e9e9f7;
+   }
+
 </style>
 
 <script>
@@ -64,7 +69,7 @@
     <div class="task-box">
         <div class="col-md-12 col-12 col-sm-12">
             <div class="card">
-            <div class="card-header text-center">
+            <div style="background-color: #e9e9f7;" class="card-header text-center">
                 <h4>Your annotated sequences</h4>
             </div>
             
@@ -73,7 +78,7 @@
                         <table class="table table-striped">
                             <tbody>
                                 <tr>
-                                    <th>Sequence</th>
+                                    <th style = 'bgcolor: red;'>Sequence</th>
                                     <th>Type</th>
                                     <th>Status</th>
                                 </tr>
@@ -159,10 +164,10 @@
                     <table class="table">
                         <tbody>
                                 <tr>
-                                    <th style="width: 400px;">Species</th>
-                                    <th>Chromosome</th>
-                                    <th>Upload time</th>
-                                    <th>Action</th>
+                                    <th style="width: 400px; background-color: #e9e9f7;">Species</th>
+                                    <th style="background-color: #e9e9f7;">Chromosome</th>
+                                    <th style="background-color: #e9e9f7;">Upload time</th>
+                                    <th style="background-color: #e9e9f7;">Action</th>
                                 </tr>
                                     
                             {% if genome_annotations %}
@@ -195,10 +200,10 @@
                     <table class="table">
                         <tbody>
                             <tr>
-                                <th style="width: 400px;">Gene and Type</th>
-                                <th>Accession number</th>
-                                <th>Upload time</th>
-                                <th>Action</th>
+                                <th style="width: 400px; background-color: #e9e9f7;">Gene and Type</th>
+                                <th style="background-color: #e9e9f7;">Accession number</th>
+                                <th style="background-color: #e9e9f7;">Upload time</th>
+                                <th style="background-color: #e9e9f7;">Action</th>
                             </tr>
                             {% if protein_annotations %}
                                 <nav>

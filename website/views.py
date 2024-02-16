@@ -32,6 +32,7 @@ from django.shortcuts import get_object_or_404
 
 from django.core.paginator import Paginator
 from django.http import Http404
+from django.db import transaction
 
 def home(request):
     posts = Post.objects.all()
@@ -214,8 +215,6 @@ def search_results(request):
                                         Q(geneprotein__genome__annotationgenome__species__contains=species)
                                         ).only('geneprotein__type','geneprotein__accession_number','geneprotein__sequence','geneprotein__genome__id','geneprotein__genome__annotationgenome__species')       
                 
-                print(results)
-
                 special_query = False
 
                 if re.search('%',sequence_query):
@@ -228,7 +227,6 @@ def search_results(request):
 
 
                 if special_query:
-                    print(pattern)
                     for DNAsequence in results:
                         if output_type == 'genome': 
                             if pattern.search(DNAsequence.genome.sequence):
@@ -275,7 +273,6 @@ def search_results(request):
                         
                                 final_result.append(result_dic)
 
-                print(final_result)
                 p = Paginator(final_result,15)
                 page = request.GET.get('page')
                 sequences = p.get_page(page)
@@ -318,6 +315,7 @@ def validate(seq, alphabet='dna'):
 def upload(request):
     if request.POST:
         form = Upload_data(request.POST, request.FILES)
+
         if form.is_valid():
             file = request.FILES['sequence']
             if 'annotated' not in request.POST:
@@ -357,7 +355,6 @@ def upload(request):
                                                         'upload_time':timezone.now()
                                                             })
                                                 
-                # We populate the "artificial" genome created by the proteins
                 if not genome[1] and genome[0].sequence is None:
                     genome[0].sequence=sequence
                     genome[0].start=start
@@ -384,74 +381,97 @@ def upload(request):
                 return redirect(home)
             
             else :
-                for record in SeqIO.parse(file_stream, 'fasta'):
-                    a_n = record.id
-                    sequence = record.seq
+                
+                number_of_fasta_lines = list(SeqIO.parse(file_stream, 'fasta'))
 
-                    if not sequence:
-                        error_message = 'The protein '+ a_n + ' does not contain a sequence'
-                        return render(request, 'upload.html', {'form': form, 'error_message': error_message})
-
-                    type = record.description.split()[1].lower()
-                    description = re.split(r'[: ]', record.description)
-                    start = description[5]
-                    end = description[6]
-                    chromosome = description[3]
-
-
-                    genome, created = Genome.objects.get_or_create(chromosome=chromosome,
-                                                    defaults={
-                                                        'upload_time':timezone.now()
-                                                            })
-
-                    if created and genome.sequence is None:
-                        genome.save()
+                if len(number_of_fasta_lines) >1000:
+                    error_message = 'The uploaded CDS/PEP file must be a fasta file with a maximum of 1000 sequences'
+                    return render(request, 'upload.html', {'form': form, 'error_message': error_message})
+                
+                with transaction.atomic():
                    
-                    gene_protein, created_protein = GeneProtein.objects.get_or_create(accession_number=a_n,type=type,
-                                                        defaults={
-                                                            'sequence':sequence,
-                                                            'start':start,
-                                                            'end':end,
-                                                            'genome':genome,
-                                                            'upload_time':timezone.now()
-                                                            })
+                    for record in number_of_fasta_lines:
+                       
+                        a_n = record.id
+                        sequence = record.seq
+                        
+                        if not sequence:
+                            error_message = 'The protein '+ a_n + ' does not contain a sequence'
+                            return render(request, 'upload.html', {'form': form, 'error_message': error_message})
+
+                        type = record.description.split()[1].lower()
+                        description = re.split(r'[: ]', record.description)
+                        start = description[5]
+                        end = description[6]
+                        chromosome = description[3]
+
+
+                        genome, created = Genome.objects.get_or_create(chromosome=chromosome,
+                                                                        defaults={'upload_time':timezone.now()})
+
+                        
+                        gene_protein, created_protein = GeneProtein.objects.get_or_create(accession_number=a_n,type=type,
+                                                            defaults={
+                                                                'sequence':sequence,
+                                                                'start':start,
+                                                                'end':end,
+                                                                'genome':genome,
+                                                                'upload_time':timezone.now()
+                                                                })
+                        
                     
-                    if not created_protein:
-                        error_message = 'The protein '+ a_n + ' is already in the database'
-                        return render(request, 'upload.html', {'form': form, 'error_message': error_message})
+                        if not created_protein:
+                            error_message = 'The protein '+ a_n + ' is already in the database'
+                            return render(request, 'upload.html', {'form': form, 'error_message': error_message})
 
 
 
-                    if annotated and created_protein:
-                        print(description)
-                        gene=description[9]
-                        transcript=a_n
-                        gene_biotype=description[12]
-                        gene_symbol=description[15]
-                        transcript_biotype=description[14]
+                        if annotated and created_protein:
+                            gene = description[9]
+                            gene_symbol_exist = re.search(r'gene_symbol:(\S+)', record.description)
 
-                        if type == "cds":
-                            description_protein=' '.join(description[18:21])
-                        else:
-                            description_protein=' '.join(description[19:21])
 
-                        id_user = Profile.objects.get(id=username_id)
+                            if gene_symbol_exist:
+                                if type == "cds":
+                                    transcript = "NA"
+                                    gene_biotype = description[11]
+                                    transcript_biotype = description[13]
+                                    gene_symbol = description[15]
+                                    description_protein = ' '.join(description[17:])
+                                else:
+                                        transcript = a_n
+                                        gene_biotype = description[13]
+                                        transcript_biotype = description[15]
+                                        gene_symbol = description[17]
+                                        description_protein = ' '.join(description[19:])
+                            else:
+                                gene_symbol = "unknown"
 
-                        annotation_protein = AnnotationProtein.objects.create(
-                                                                        gene=gene,
-                                                                        transcript=transcript,
-                                                                        gene_biotype=gene_biotype, 
-                                                                        transcript_biotype=transcript_biotype,
-                                                                        gene_symbol=gene_symbol, 
-                                                                        description=description_protein, 
-                                                                        annotator=id_user,
-                                                                        geneprotein=gene_protein,
-                                                                        is_annotated=True,
-                                                                        annotation_time = timezone.now()) 
-                                                                    
-                        annotation_protein.save()
+                                if type == "cds":
+                                    transcript = "NA"
+                                    gene_biotype = description[11]
+                                    transcript_biotype = description[13]
+                                    description_protein = ' '.join(description[15:])
+                                else:
+                                    transcript = a_n
+                                    gene_biotype = description[13]
+                                    transcript_biotype = description[15]
+                                    description_protein = ' '.join(description[17:])
 
-                return redirect(home)
+                                id_user = Profile.objects.get(id=username_id)
+                                AnnotationProtein.objects.create(gene=gene,
+                                                                transcript=transcript,
+                                                                gene_biotype=gene_biotype, 
+                                                                transcript_biotype=transcript_biotype,
+                                                                gene_symbol=gene_symbol, 
+                                                                description=description_protein, 
+                                                                annotator=id_user,
+                                                                geneprotein=gene_protein,
+                                                                is_annotated=True,
+                                                                annotation_time = timezone.now()) 
+                                                                        
+                    success_message = "Your fasta file has been successfully uploaded"
+                    return render(request,'upload.html', {'success':success_message, 'form':form})
         else:
             return render(request,'upload.html',{'form':form})
 
@@ -899,7 +919,7 @@ def visualize_genome_genes(request, sequence_type, selected_genome_id):
     traces = []
     for i, gene in enumerate(annotated_genes):
         if sequence_type != 'genome' and gene.id == unknown_gene.id:
-            color = 'rgb(0, 0, 0)'  # Set a specific lor for the unknown protein
+            color = 'rgb(0, 0, 0)'  
             line_width = 50
         else:
             color = color_palette[i % len(color_palette)]
@@ -933,7 +953,7 @@ def visualize_genome_genes(request, sequence_type, selected_genome_id):
     return render(request, 'visualization.html', {'html_graph': html_graph})
 
 
-
+@login_required(login_url="/login")
 def blast_search(request,sequence,program,database):
         
     ##sequence = "AAAAGTGTACGGATTCTGGAAGCTGAATGCTGTGCAGATCATATCCATATGCTTGTGGAG"
@@ -956,7 +976,8 @@ def blast_search(request,sequence,program,database):
         return "An error occurred"
 
 ## FORUM ##
-    
+
+@login_required(login_url="/login") 
 def post(request, post_url):
     post = get_object_or_404(Post, url = post_url)
     forum = Post.objects.all()
@@ -976,6 +997,7 @@ def post(request, post_url):
     }
     return render(request, "forums.html", context)
 
+@login_required(login_url="/login")
 def post_new_comment(request,post_url,post_id):
     user = request.user
     if request.method == "POST":
@@ -991,6 +1013,7 @@ def post_new_comment(request,post_url,post_id):
         
             return post(request,post_url)
 
+@login_required(login_url="/login")
 def create_new_post(request):
     user = request.user
     print(user)
