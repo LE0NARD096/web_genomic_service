@@ -188,4 +188,4 @@ class CreatePostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['title','content']
-        widgets = {'content': TinyMCE(mce_attrs={'height': 280}), 'title': forms.TextInput(attrs={'placeholder': 'Title'})}
+        widgets = {'content': TinyMCE(mce_attrs={'height': 350}), 'title': forms.TextInput(attrs={'placeholder': 'Title'})}
