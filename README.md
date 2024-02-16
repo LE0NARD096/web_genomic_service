@@ -3,6 +3,7 @@
 ## Project guidelines
 
 To developp this project, we used a python3 virtual environment by executing the followwing command:
+
 `python3 -m venv .venv`
 `source .venv/bin/activate`
 
@@ -11,21 +12,25 @@ Then, to create the correct work environment for this project, the needed instal
 
 ## Django command
 
-Populate the database with fasta files and users
+Populate the database with fasta files and users :
 
-**python3 manage.py import-my-data file/path/**
+`**python3 manage.py import-my-data file/path/**`
 
-Options
+Options :
 
-**--annotated**
+`**--annotated**`
 
 Takes into account the fully annotated fasta files
 
-**--populatewithusers**
+`**--populatewithusers**`
 
 Includes in the database some test users for the site
 
+Once your database is filled, you can run the following command to launch the site :
 
+`python3 manage.py runserver`
+
+It will give you an http address to paste in yout browser to access the site
 
 ## Git command 
 
