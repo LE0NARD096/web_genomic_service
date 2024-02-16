@@ -10,7 +10,8 @@ To increase and make more transparent communication between users, a forum is ma
 
 To access our project, it has to be cloned on your computer with the following command :
 
-`git clone <url>` <url> has to be replaced by the url found on the first page of this git repository
+`git clone <url>` 
+"url" has to be replaced by the url found on the first page of this git repository
 
 To developp this project, we used a python3 virtual environment by executing the followwing command:
 
@@ -43,7 +44,7 @@ Once your database is filled, you can run the following command to launch the si
 
 It will give you an http address to paste in yout browser to access the site
 
-If you want to use the site has an admin, you have to execute the following command into your terminal:
+If you want to use the site has an admin, you have to execute the following command:
 
 `python3 manage.py createsuperuser`
 
