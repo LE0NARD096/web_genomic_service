@@ -726,7 +726,7 @@ def save_annotation(request):
 
             update_sequence.save()
 
-            return render(request, 'status_sequence_modified.html')
+            return annotator_view(request)
 
         else:
             return render(request, 'Annotator/Annotate_sequences.html', {'form': form_annotate, 'form2': form_sequence})

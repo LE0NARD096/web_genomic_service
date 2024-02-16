@@ -11,19 +11,19 @@
         justify-content: center;
     }
 
-    div {
+    div.table_results {
         display: flex;
         justify-content: center;
         align-items: center;
     }
 
     th, td {
-        max-width: 100px; /* Adjust the max-width as needed */
+        max-width: 100px; 
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        padding: 8px; /* Add padding for better spacing */
-        text-align: center; /* Center the content */
+        padding: 8px; 
+        text-align: center;
     }
 
     tbody {
@@ -42,20 +42,20 @@
 
 </style>
 <h2>Search results</h2>
-<div>
+<div class="table_results">
     {% if results %}
     <table class="table">
         <thead>
         <tr>
             {% if restults.type == 'genome'%}
-                <th>Chromosome</th>
+                <th style="background-color: #e9e9f7;">Chromosome</th>
             {% else %}
-                <th>Accession Number</th>
+                <th style="background-color: #e9e9f7;">Accession Number</th>
             {% endif %}
-            <th>Species</th>
-            <th>Type</th>
-            <th>Sequence</th>
-            <th>Visualize</th>
+            <th style="background-color: #e9e9f7;" >Species</th>
+            <th style="background-color: #e9e9f7;">Type</th>
+            <th style="background-color: #e9e9f7;">Sequence</th>
+            <th style="background-color: #e9e9f7;">Visualize</th>
         </tr>
         </thead>
         
@@ -75,11 +75,11 @@
             </td>
             
             <td>
-                <a class="btn btn-primary btn-action"  href="{% url 'visualisation' result.type result.id %}"><i class="fas fa-dna"></i></a>
-                <a class="btn btn-primary btn-action"  href="{% url 'download' result.type result.id %}"><i class="fas fa-download"></i></a>
+                <a style="background-color: #7089b9; border: #7089b9;" class="btn btn-primary btn-action"  href="{% url 'visualisation' result.type result.id %}"><i class="fas fa-dna"></i></a>
+                <a style="background-color: #7089b9; border: #7089b9;" class="btn btn-primary btn-action"  href="{% url 'download' result.type result.id %}"><i class="fas fa-download"></i></a>
             </td>
             <td>
-                <a class="btn btn-primary btn-action"  href="{% url 'visual_annotation' result.type result.id %}"><i class="fas fa-eye"></i></a>
+                <a style="background-color: #7089b9; border: #7089b9;" class="btn btn-primary btn-action"  href="{% url 'visual_annotation' result.type result.id %}"><i class="fas fa-eye"></i></a>
             </td>
             </tr>
         {% endfor %}
@@ -96,14 +96,14 @@
     <div class="pagination">
 
     {% if results.number != 1 %}
-        <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">First</a></li>
+        <li class="page-item"><a style="color: #7089b9;"  class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">First</a></li>
     {% else %}
         <li class="page-item disabled"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">First</a></li>
     {% endif %}
 
     {% if results.has_previous %}
         <li class="page-item">
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ results.previous_page_number }}" class="page-link">Previous</a>
+            <a style="color: #7089b9;"  href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ results.previous_page_number }}" class="page-link">Previous</a>
         </li>
     {% else %}
         <li class="page-item disabled">
@@ -113,13 +113,13 @@
     
    
     <li class="page-item active">
-        <span class="page-link">
+        <span style="background-color: #7089b9; border: #7089b9;" class="page-link">
           {{ results.number }}
         <span class="sr-only">(current)</span>
     </span>
 
     {% if results.has_next and results.number != results.paginator.num_pages  %}
-        <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ results.next_page_number }}">Next</a></li>
+        <li class="page-item"><a style="color: #7089b9;" class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ results.next_page_number }}">Next</a></li>
     
     {% else %}
         <li class="page-item disabled">
@@ -128,7 +128,7 @@
     {% endif %}
 
     {% if results.paginator.num_pages != results.number   %}
-        <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{results.paginator.num_pages}}">Last</a></li>
+        <li class="page-item"><a style="color: #7089b9;"  class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{results.paginator.num_pages}}">Last</a></li>
     {% else %}
         <li class="page-item disabled"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{results.paginator.num_pages}}">Last</a></li>
     {% endif %}

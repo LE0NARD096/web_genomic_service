@@ -187,12 +187,18 @@
 
                     {% if request.user.is_authenticated %}
                     
-                    {% if request.user.role == "validator" or request.user.is_superuser %}
+                    {% if request.user.role == "validator" %}
                         <li class="nav-item" style="margin-right: 10px;"> 
                             <a class="nav-link" href="/validator_view">Validator dashboard</a>
                         </li>
-                    {% endif %}
-                    {% if request.user.role == "annotator" or request.user.is_superuser %}
+                    {% elif request.user.role == "annotator" %}
+                        <li class="nav-item" style="margin-right: 10px;">
+                            <a class="nav-link" href="/annotator_dashboard">Annotator dashboard</a>
+                        </li>
+                    {% elif request.user.is_superuser %}
+                        <li class="nav-item" style="margin-right: 10px;"> 
+                            <a class="nav-link" href="/validator_view">Validator dashboard</a>
+                        </li>
                         <li class="nav-item" style="margin-right: 10px;">
                             <a class="nav-link" href="/annotator_dashboard">Annotator dashboard</a>
                         </li>
@@ -233,9 +239,12 @@
 
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end notification-dropdown" id="notificationDropdown">
-                            {% if request.user.role == "validator" or request.user.is_superuser %}
+                            {% if request.user.role == "validator" %}
                             <li><a class="dropdown-item" href="/validator_view">Validator dashboard</a></li>
-                            {% elif request.user.role == "annotator" or request.user.is_superuser %}
+                            {% elif request.user.role == "annotator" %}
+                            <li><a class="dropdown-item" href="/annotator_dashboard">Annotator dashboard</a></li>
+                            {% elif request.user.is_superuser %}
+                            <li><a class="dropdown-item" href="/validator_view">Validator dashboard</a></li>
                             <li><a class="dropdown-item" href="/annotator_dashboard">Annotator dashboard</a></li>
                             {% endif %}
                         </ul>
