@@ -136,7 +136,7 @@ class SequenceGenome(forms.ModelForm):
     
 
 class DownloadTextForm(forms.Form):
-    output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Génome'), ('gene_protein', 'Gène/Protéine')])
+    output_type = forms.ChoiceField(label='Search in', choices=[('genome', 'Genome'), ('gene_protein', 'Gene/Protein')])
     start_position = forms.IntegerField(label='Start', required=False)
     end_position = forms.IntegerField(label='End', required=False)
     chromosome = forms.CharField(label='Chromosome', required=False)
