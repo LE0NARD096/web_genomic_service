@@ -64,7 +64,7 @@
         padding-bottom: 4px;
       }
       
-      button {
+      button.search {
         background-color: #7089b9;
         margin-top: 10px;
         font-size: 14px;
@@ -75,7 +75,7 @@
         border: none;
       }
       
-      button:hover {
+      button.search:hover {
         background-color: #5f5f9c;
       }
 
@@ -121,6 +121,10 @@
                     </div>
                 {% endfor %}
         {% endif %}
+
+        <div class="card_header">
+          <h1 class="form_heading">Search</h1>
+        </div>
         
         <div class="field">
           <label>{{ form.output_type.label_tag }}</label>
@@ -159,7 +163,7 @@
                 </div>  
         
                 <div class="field">
-                <button class="button">Search</button>
+                <button class="search">Search</button>
                 </div>
       </form>
 </div>

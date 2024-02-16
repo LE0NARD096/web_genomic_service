@@ -919,7 +919,7 @@ def visualize_genome_genes(request, sequence_type, selected_genome_id):
     traces = []
     for i, gene in enumerate(annotated_genes):
         if sequence_type != 'genome' and gene.id == unknown_gene.id:
-            color = 'rgb(0, 0, 0)'  # Set a specific lor for the unknown protein
+            color = 'rgb(0, 0, 0)'  
             line_width = 50
         else:
             color = color_palette[i % len(color_palette)]

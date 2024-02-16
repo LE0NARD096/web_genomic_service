@@ -33,7 +33,7 @@
         font-size: larger; 
     }
 
-      img{
+      img.choice{
         max-width: 80%;
       }
       
@@ -102,7 +102,7 @@
           <div class="pane">
               <h2>Search</h2>
               <a href="/search">
-                <img src="{% static 'search.png' %}" alt="Search Image">
+                <img  class = "choice"  src="{% static 'search.png' %}" alt="Search Image">
             </a>
             
           </div>
@@ -110,7 +110,7 @@
               <h2>Upload</h2>
             
               <a href="/upload">
-                <img src="{% static 'upload.png' %}" alt="Upload Image">
+                <img class = "choice" src="{% static 'upload.png' %}" alt="Upload Image">
             </a>
 
           </div>
@@ -118,7 +118,7 @@
             <h2>Download</h2>
           
             <a href="/text_extraction">
-              <img src="{% static 'download.png' %}" alt="Download Image">
+              <img class = "choice"  src="{% static 'download.png' %}" alt="Download Image">
           </a>
 
         </div>
