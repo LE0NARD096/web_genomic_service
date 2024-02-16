@@ -3,11 +3,8 @@
 ## Project guidelines
 
 To developp this project, we used a python3 virtual environment by executing the followwing command:
-```
-python3 -m venv .venv
-
-source .venv/bin/activate
-```
+`python3 -m venv .venv`
+`source .venv/bin/activate`
 
 Then, to create the correct work environment for this project, the needed installations are in the file env_install.sh :  
 `source env_install.sh`
