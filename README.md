@@ -1,6 +1,16 @@
 # ProjectWeb
 
+This project was developed as part of the Web Programming course of the M2 AMI2B of Paris-Saclay University.
+
+The app is called BacatHub, it was created to facilitate the exchange of information in the biological domain between three different figures who approach the world of gene annotations: users, annotators and validators. The application allows people with biological backgrounds to annotate bacterial genomes and specific genes or proteins.
+This web-application offers the possibility to make queries on already annotated genomes and genes, to download the results in a fasta format and to upload new sequences, already noted or needing to be cataloged, in the BactAHub database. 
+To increase and make more transparent communication between users, a forum is made available to the BactAHub community.
+
 ## Project guidelines
+
+To access our project, it has to be cloned on your computer with the following command :
+
+`git clone <url>` <url> has to be replaced by the url found on the first page of this git repository
 
 To developp this project, we used a python3 virtual environment by executing the followwing command:
 
@@ -33,31 +43,9 @@ Once your database is filled, you can run the following command to launch the si
 
 It will give you an http address to paste in yout browser to access the site
 
-## Git command 
+If you want to use the site has an admin, you have to execute the following command into your terminal:
 
-Cloner un repository git en local : **git clone url**
+`python3 manage.py createsuperuser`
 
-Bring modifications on local from the git repo:
-**git pull**
 
-Bring modifications from your computer to the git repo : 
-
-**git add .** to push everything 
-**git add nameFile** to push specific file(s)
-
-**git commit -m « … »**
-
-**git push**
-
-Vizualise on what branch we are currently on :
-**git status**
-
-Forcer à pull même quand erreur :
-**git reset --hard origin/main**
-
-Change branch : 
-**git checkout NomBranche**
-
-Update a branch with main : 
-**git merge main**
 
